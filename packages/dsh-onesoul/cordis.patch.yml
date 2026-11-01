@@ -9,8 +9,13 @@
 # * 不要把本机绝对路径写进来；自己的 QQ 号、工作区路径、字体请在
 #   <DSH_HOME>/profiles/<profile>/cordis.patch.yml 里用同 id 的顶层行覆盖。
 - insert:
-    - id: dsh-better-sidebar
-      name: dsh-better-sidebar
+    # 下面这几行的 id 一律抄各包自带 cordis.patch.yml 里的行 id，不能另起名字：
+    # dsh-bili-pond 的配置命名空间就取 loader 行 id（lib/index.js:44/475「loader entry 的 id 必须等于命名空间名」），
+    # dsh-better-sidebar 自带守卫按 id 判重（换 id 会把它自己关掉），dsh-meme 的插件 id 历史上就是 dsh-expression。
+    - id: better-sidebar
+      name: 'dsh-better-sidebar'
+      # 与包自带 patch 同一守卫：若还有同包不同 id 的重复行，本行自我关闭，避免两侧栏抢注。
+      disabled: !!js "[...ctx.loader.entries()].some((e) => e.options.name === 'dsh-better-sidebar' && e.options.id !== 'better-sidebar' && !e.disabled)"
 
     - id: dsh-deepseek-web-login
       name: dsh-deepseek-web-login
@@ -25,10 +30,12 @@
       config:
         enabled: true
 
-    - id: dsh-bili-pond
+    - id: bili-pond
       name: dsh-bili-pond
+      config:
+        enabled: true
 
-    - id: dsh-meme
+    - id: dsh-expression
       name: dsh-meme
 
     - id: our-free-model

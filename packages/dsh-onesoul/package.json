@@ -1,6 +1,6 @@
 {
   "name": "dsh-onesoul",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "一个灵魂，多个通道：人格与长期记忆（anima）+ 控制中心仪表盘 + QQ / B站 / 表情包通道，一条 dsh plugin add 装齐。",
   "type": "module",
   "main": "lib/index.js",
