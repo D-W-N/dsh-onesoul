@@ -19,3 +19,4 @@ napcat/
 Thumbs.db
 .vscode/
 .idea/
+*.bak
