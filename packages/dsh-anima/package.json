@@ -1,0 +1,35 @@
+{
+  "name": "dsh-anima",
+  "version": "0.1.10",
+  "description": "DeepSeek Harness 灵魂层：单一人格 + 长期记忆候选/裁决 + 系统提示词注入。记忆必须经用户裁决才生效，绝不自动写入。",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "dsh",
+    "deepseek-harness",
+    "persona",
+    "memory"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

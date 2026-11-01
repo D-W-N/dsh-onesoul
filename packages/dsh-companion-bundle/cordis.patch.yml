@@ -1,0 +1,70 @@
+# dsh-companion-bundle —— 装配清单（只装配，不合并功能代码）
+#
+# 顺序即加载顺序：先侧边栏（控制中心的宿主），再灵魂（anima），
+# 然后大脑与各通道，最后仪表盘（它要读前面几个的状态）。
+#
+# 每一行的 name 必须是真实 npm 包名（写错会在启动时报 Cannot find package），
+# 且不得出现本机绝对路径。
+- insert:
+    - id: dsh-better-sidebar
+      name: dsh-better-sidebar
+
+    - id: dsh-anima
+      name: dsh-anima
+
+    - id: dsh-deepseek-web-login
+      name: dsh-deepseek-web-login
+      config: {}
+
+    - id: dsh-onebot
+      name: 'dsh-onebot-qq'
+    - id: onebot-settings-remote
+      name: 'dsh-onebot-qq/settings-remote'
+    - id: napcat-keeper
+      name: 'dsh-napcat-keeper'
+      config:
+        enabled: true
+
+    - id: dsh-bili-pond
+      name: dsh-bili-pond
+
+    - id: dsh-meme
+      name: dsh-meme
+
+    - id: our-free-model
+      name: 'dsh-our-free-model'
+    - id: dsh-companion-dashboard
+      name: dsh-companion-dashboard
+
+# OneBot11 反向 WS 要求非空 accessToken（dsh-onebot-qq/lib/connection.js:250），
+# 且必须与 napcat-keeper 一致，否则 NapCat 连上来被 4401 拒绝。
+# 按 dsh-onebot-qq 的 patch 约定，config 覆盖挂顶层同 id 行，不塞进 insert 块。
+- id: dsh-onebot
+  config:
+    accessToken: dsh-companion-onebot
+    # 谁发消息都回：dmPolicy 的 open 默认只放行 adminUsers，allowAllUsers 才是「加了好友就回」
+    # 依据 dsh-onebot-qq/lib/chat.js:65  return policy.allowAllUsers || policy.adminUsers.includes(userId)
+    # adminUsers 保留，只用来给主号开管理员命令（/new、/workspace 等 adminOnly）
+    dmPolicy: open
+    allowAllUsers: true
+    # 0 = 不再把长回复渲染成一张文字图卡片（交给 dsh-companion-dashboard 按句号拆成多条消息）
+    textImageThreshold: 0
+    adminUsers:
+      - '2634024517'
+    # QQ 会话的工作区（留空会落到宿主启动目录）；不存在会自动创建
+    workspacePath: E:/dsh-onesoul/playground
+    # 长回复渲染成文字图卡片时用的中文字体（缺字体会报 no usable CJK font family 并退化为纯文本）
+    fontFiles:
+      - C:/Windows/Fonts/msyh.ttc
+    fontFamilies:
+      - Microsoft YaHei
+- id: napcat-keeper
+  config:
+    enabled: true
+    accessToken: dsh-companion-onebot
+
+# 部署默认模型（新建会话与 QQ 通道都继承它）
+- id: agent-default-model
+  config:
+    provider: deepseek-web
+    model: deepseek-reasoner

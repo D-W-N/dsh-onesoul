@@ -1,0 +1,71 @@
+{
+  "name": "dsh-onesoul",
+  "version": "0.1.0",
+  "description": "一个灵魂，多个通道：人格与长期记忆（anima）+ 控制中心仪表盘 + QQ / B站 / 表情包通道，一条 dsh plugin add 装齐。",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/",
+    "plugins/",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./plugins/dashboard/lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection"
+      ],
+      "platform": "web"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    }
+  },
+  "dependencies": {
+    "dsh-better-sidebar": "^0.26.1",
+    "dsh-deepseek-web-login": "^1.0.3",
+    "dsh-onebot-qq": "^0.9.9",
+    "dsh-napcat-keeper": "^2.8.2",
+    "dsh-bili-pond": "^1.3.14",
+    "dsh-meme": "^0.1.71",
+    "dsh-our-free-model": "^2.1.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "deepseek-harness",
+    "companion",
+    "persona",
+    "memory",
+    "qq",
+    "bilibili",
+    "agent"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/D-W-N/dsh-onesoul.git"
+  },
+  "homepage": "https://github.com/D-W-N/dsh-onesoul#readme",
+  "bugs": {
+    "url": "https://github.com/D-W-N/dsh-onesoul/issues"
+  },
+  "author": "D-W-N"
+}

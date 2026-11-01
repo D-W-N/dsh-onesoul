@@ -1,0 +1,21 @@
+# 依赖与本地验证
+node_modules/
+.probe/
+.verify/
+*.tgz
+
+# 打包中间产物（由 scripts/build-onesoul.mjs 生成）
+packages/dsh-onesoul/plugins/
+
+# 运行时数据与本机安装
+playground/
+dshqqbot/
+napcat/
+%SystemDrive%/
+*.log
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

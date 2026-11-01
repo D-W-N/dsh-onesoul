@@ -1,0 +1,45 @@
+{
+  "name": "dsh-companion-dashboard",
+  "version": "0.1.35",
+  "description": "Companion 控制中心：在 dsh-better-sidebar 里注册一个 Tab，聚合 anima 记忆裁决、默认模型选择、B站/QQ/网页版 DeepSeek provider/表情包状态与快捷入口，全程不离开该 Tab。",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*",
+    "dsh-better-sidebar": "*"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "dsh",
+    "deepseek-harness",
+    "sidebar",
+    "dashboard",
+    "companion"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

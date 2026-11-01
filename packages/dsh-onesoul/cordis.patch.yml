@@ -1,0 +1,67 @@
+# dsh-onesoul —— 装配清单
+#
+# 一份 patch 装齐：控制中心宿主（侧边栏）、人格与记忆（本包内置）、
+# 网页版 DeepSeek provider、QQ（OneBot11 + NapCat 看门狗）、B站、表情包。
+#
+# 改动要点：
+# * 每一行的 name 必须是真实 npm 包名；本包自带的两个插件走 dsh-onesoul（包根），
+#   不能写成 dsh-onesoul/anima 这类子路径 —— 宿主只给包根说明符解析浏览器侧声明。
+# * 不要把本机绝对路径写进来；自己的 QQ 号、工作区路径、字体请在
+#   <DSH_HOME>/profiles/<profile>/cordis.patch.yml 里用同 id 的顶层行覆盖。
+- insert:
+    - id: dsh-better-sidebar
+      name: dsh-better-sidebar
+
+    - id: dsh-deepseek-web-login
+      name: dsh-deepseek-web-login
+      config: {}
+
+    - id: dsh-onebot
+      name: 'dsh-onebot-qq'
+    - id: onebot-settings-remote
+      name: 'dsh-onebot-qq/settings-remote'
+    - id: napcat-keeper
+      name: 'dsh-napcat-keeper'
+      config:
+        enabled: true
+
+    - id: dsh-bili-pond
+      name: dsh-bili-pond
+
+    - id: dsh-meme
+      name: dsh-meme
+
+    - id: our-free-model
+      name: 'dsh-our-free-model'
+
+    # 灵魂（anima）+ 控制中心（dashboard）都在这个包里，挂一次即可。
+    # 它要读前面几行的状态，所以排在最后。
+    - id: dsh-onesoul
+      name: dsh-onesoul
+
+# OneBot11 反向 WS 要求非空 accessToken（dsh-onebot-qq/lib/connection.js:250），
+# 且必须与 napcat-keeper 一致，否则 NapCat 连上来会被 4401 拒绝。
+# 按 dsh-onebot-qq 的 patch 约定，config 覆盖挂顶层同 id 行，不塞进 insert 块。
+- id: dsh-onebot
+  config:
+    accessToken: dsh-companion-onebot
+    # 谁发消息都回：dmPolicy 的 open 默认只放行 adminUsers，allowAllUsers 才是「加了好友就回」
+    # 依据 dsh-onebot-qq/lib/chat.js:65  return policy.allowAllUsers || policy.adminUsers.includes(userId)
+    dmPolicy: open
+    allowAllUsers: true
+    # 0 = 不把长回复渲染成一张文字图卡片（交给控制中心的按句切分，一条消息一句话）
+    textImageThreshold: 0
+    # adminUsers 只用来给「你自己的号」开管理员命令（/new、/workspace、/model --default 等）。
+    # 换成你的 QQ 号：取消注释并填数字。
+    # adminUsers:
+    #   - '1234567890'
+- id: napcat-keeper
+  config:
+    enabled: true
+    accessToken: dsh-companion-onebot
+
+# 部署默认模型（新建会话与 QQ 通道都继承它）
+- id: agent-default-model
+  config:
+    provider: deepseek-web
+    model: deepseek-reasoner

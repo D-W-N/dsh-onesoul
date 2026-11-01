@@ -1,0 +1,48 @@
+# dsh-companion-bundle —— 装配清单（只装配，不合并功能代码）
+#
+# 顺序即加载顺序：先侧边栏（控制中心的宿主），再灵魂（anima），
+# 然后大脑与各通道，最后仪表盘（它要读前面几个的状态）。
+#
+# 每一行的 name 必须是真实 npm 包名（写错会在启动时报 Cannot find package），
+# 且不得出现本机绝对路径。
+- insert:
+    - id: dsh-better-sidebar
+      name: dsh-better-sidebar
+
+    - id: dsh-anima
+      name: dsh-anima
+
+    - id: dsh-deepseek-web-login
+      name: dsh-deepseek-web-login
+      config: {}
+
+    - id: dsh-onebot
+      name: 'dsh-onebot-qq'
+    - id: onebot-settings-remote
+      name: 'dsh-onebot-qq/settings-remote'
+    - id: napcat-keeper
+      name: 'dsh-napcat-keeper'
+      config:
+        enabled: true
+
+    - id: dsh-bili-pond
+      name: dsh-bili-pond
+
+    - id: dsh-meme
+      name: dsh-meme
+
+    - id: dsh-companion-dashboard
+      name: dsh-companion-dashboard
+
+# OneBot11 反向 WS 要求非空 accessToken（dsh-onebot-qq/lib/connection.js:250），
+# 且必须与 napcat-keeper 一致，否则 NapCat 连上来被 4401 拒绝。
+# 按 dsh-onebot-qq 的 patch 约定，config 覆盖挂顶层同 id 行，不塞进 insert 块。
+- id: dsh-onebot
+  config:
+    accessToken: dsh-companion-onebot
+    adminUsers:
+      - '2634024517'
+- id: napcat-keeper
+  config:
+    enabled: true
+    accessToken: dsh-companion-onebot

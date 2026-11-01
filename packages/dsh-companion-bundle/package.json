@@ -1,0 +1,49 @@
+{
+  "name": "dsh-companion-bundle",
+  "version": "0.1.41",
+  "description": "DSH 统一人格智能体聚合包：一行 dsh plugin add 装齐灵魂(anima)、大脑(网页版 DeepSeek provider)、QQ(真人号·OneBot11)/B站通道、表情包与控制中心仪表盘。只做装配，不含功能代码。",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    }
+  },
+  "dependencies": {
+    "dsh-anima": "^0.1.10",
+    "dsh-companion-dashboard": "^0.1.35",
+    "dsh-our-free-model": "^2.1.0",
+    "dsh-better-sidebar": "^0.26.1",
+    "dsh-deepseek-web-login": "^1.0.3",
+    "dsh-onebot-qq": "^0.9.6",
+    "dsh-napcat-keeper": "^2.8.2",
+    "dsh-bili-pond": "^1.3.13",
+    "dsh-meme": "^0.1.64"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "companion",
+    "persona",
+    "memory",
+    "qq",
+    "bilibili"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}
