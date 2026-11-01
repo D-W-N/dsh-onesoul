@@ -1903,7 +1903,9 @@ ACCOUNT                 = 3660096629
 | 干净 profile（file: 形态） | `.verify/home-onesoul/profiles/test` + `dsh --profile test --dump-config` | `# == dsh-onesoul` 段齐全、行 `- id: dsh-onesoul / name: dsh-onesoul` |
 | **registry 安装** | 同 profile 改 `dsh-onesoul: ^0.1.0` → `npm install --registry https://registry.npmjs.org` | 装到 `node_modules/dsh-onesoul/package.json` version `0.1.0`；dump-config 仍打出 `# == @deepseek-ai/dsh-base, patched by dsh-onesoul` 与 `- id: dsh-onesoul` |
 | npm | `npm view dsh-onesoul versions dist-tags` | `["0.0.0-stage","0.1.0"]`、`latest: 0.1.0` |
-| GitHub | 追踪文件 40 个；`git log` = `e98d682` → `00e6733`；tag `v0.1.0` | main 已推送、tag 已推送 |
+| GitHub | 追踪文件 40 个；首个提交 `dc3d229`（重写后 sha）→ 当前 main `f1a68c1`；tag `v0.1.0`/`v0.1.1`/`v0.1.2` 已推 | main 已推送、tag 已推送 |
+
+> 提交作者邮箱的坑（2026-11-01 深夜修）：最初 6 个提交都写成 `dwn@users.noreply.github.com`，GitHub 按邮箱归属，把提交算到**另一个已存在账号 `dwn`（id 10257136）**头上，仓库贡献者显示成 dwn。正解是 GitHub 的 ID 形式 noreply：`321008312+D-W-N@users.noreply.github.com`（D-W-N 的 id 是 321008312，账号 2026-08 注册，老的 login 形式 `D-W-N@users.noreply.github.com` 不可靠）。已用 `git filter-branch --env-filter` + `--tag-name-filter cat` 重写全部提交的 author/committer，`git push -f origin main` 与 `git push -f --tags` 覆盖远端（旧 sha 0191af2/ef1b775/bb0f969/a6749c7/00e6733/e98d682 作废），本地 `git config user.email` 也已改，后续提交不会再错。验证：commits 页 HTML 里 `/D-W-N` 作者链接 7 个、`/dwn` 0 个；单提交 API 的 `author.login` = D-W-N。仓库右栏 Contributors 是统计缓存，需数小时~24 小时才刷新。
 
 ### 7.32.3 发布链路上踩到的六个坑（都留了绕法）
 
