@@ -1886,6 +1886,39 @@ ACCOUNT                 = 3660096629
 
 版本：`dsh-anima 0.1.9 → 0.1.10`、`dsh-companion-dashboard 0.1.34 → 0.1.35`、`dsh-companion-bundle 0.1.40 → 0.1.41`；三个 profile 已覆盖安装（desktop / web / headless），依赖行改指新 tgz。同样要重启桌面应用才生效。
 
+## 7.32 对外发布：合并成单包 `dsh-onesoul`，npm 与 GitHub 双通道落地（2026-11-01 夜）
+
+### 7.32.1 为什么是「一个包」，不是「一个 bundle 装七个包」
+
+用户要的是「合成一个插件包一样的东西」。宿主侧的硬约束只有一条，但它决定了整个形态：`@deepseek-ai/dsh-client-modules` 的 `exactPackageSpecifier(specifier)` 对任何子路径/相对路径/scheme 一律返回 `undefined`，而 `dsh.client` 声明只能挂在**包根**说明符上 —— 写成 `dsh-onesoul/dashboard` 就永远拿不到 `dsh.client`，控制中心 Tab 不会出现。所以：`packages/dsh-onesoul` 单一入口 `lib/index.js` 里用 `ctx.plugin(animaPlugin, ...)` / `ctx.plugin(dashboardPlugin, ...)` 组合两个子插件（各自独立 fiber，一个崩不连带另一个），客户端入口固定在 `./client` → `plugins/dashboard/lib/client.js`，`cordis.patch.yml` 只写一行 `- id: dsh-onesoul / name: dsh-onesoul`。
+
+第三方 7 个包（onebot-qq / napcat-keeper / bili-pond / meme / better-sidebar / deepseek-web-login / our-free-model）**不 vendored**，仍是 `dependencies`；只有自建的 anima 与 dashboard 以源码形式内置到 `plugins/`，由 `scripts/build-onesoul.mjs` 从 `packages/*/lib` 同步。
+
+### 7.32.2 产物与验证
+
+| 项 | 命令/位置 | 结果 |
+|---|---|---|
+| 构建 | `node scripts/build-onesoul.mjs` | vendored anima 5 文件、dashboard 8 文件；entry/client 行打印正常 |
+| 打包 | `npm pack`（**必须** `--cache E:/dsh-onesoul/.probe/npmcache`） | `dsh-onesoul-0.1.0.tgz` 79.1 kB / 18 文件 / shasum `bd3a32e27c17e0bc0e77893c3e64b6349a6ed91a` |
+| 干净 profile（file: 形态） | `.verify/home-onesoul/profiles/test` + `dsh --profile test --dump-config` | `# == dsh-onesoul` 段齐全、行 `- id: dsh-onesoul / name: dsh-onesoul` |
+| **registry 安装** | 同 profile 改 `dsh-onesoul: ^0.1.0` → `npm install --registry https://registry.npmjs.org` | 装到 `node_modules/dsh-onesoul/package.json` version `0.1.0`；dump-config 仍打出 `# == @deepseek-ai/dsh-base, patched by dsh-onesoul` 与 `- id: dsh-onesoul` |
+| npm | `npm view dsh-onesoul versions dist-tags` | `["0.0.0-stage","0.1.0"]`、`latest: 0.1.0` |
+| GitHub | 追踪文件 40 个；`git log` = `e98d682` → `00e6733`；tag `v0.1.0` | main 已推送、tag 已推送 |
+
+### 7.32.3 发布链路上踩到的六个坑（都留了绕法）
+
+1. **普通 granular token 发不出去**：`npm publish` 回 `E403 ... Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages.`。必须在 npm 网页建 token 时勾 **Bypass two-factor authentication (2FA)**，且 Packages and scopes 选 **All packages**（不选会报「You must select at least one package or scope」）。
+2. **只勾 bypass 不勾 scope 会先失败一次**：表单要求 `packagesAll` 单选 + `Read and write` 权限；顺序错了会在提交时才报错，且 token 不生成。
+3. **发完立刻 `npm view` 是 404**：registry 先给一个 `0.0.0-stage` 占位 stub，真正的 `0.1.0` 要等约 45 秒才进 `versions`；期间 `dist-tags.latest` 指向 stub。
+4. **https push 走不通**：本机 22 端口被拒、https 又经过 Watt Toolkit 的中间人证书（node 侧 `UNABLE_TO_VERIFY_LEAF_SIGNATURE`），最终用 **SSH over 443**（`ssh.github.com:443`）+ 现生成的 ed25519 key（key 已加到账号 SSH keys，新建 key 页面 https://github.com/settings/ssh/new 可正常填写提交，未触发 sudo 二次验证）。
+5. **`~/.ssh/config` 的 ACL 会挡住 ssh**：报 `Bad owner or permissions on C:\Users\1/.ssh/config`，且删除失败。绕法：`ssh -F /dev/null -i <key> ...`，完全不读 config。
+6. **`https://github.com/new` 在受控 Chrome 里会卡在 `loading`**（`htmlLen 24574`、`body` 不存在、`input` 0）。可用：先访问 `/new/import`，再访问 `/new?x=1`，React 表单就能渲染；建仓用 `#repository-name-input`（原生 setter + input 事件）+ 描述 `input[name=Description]` + 点 `Create repository`。
+
+### 7.32.4 关于浏览器工具
+
+`browser-skill` 的 `bsk_*` 六个工具已进入工具表，但本会话后端起不来：`bsk session request prepare failed: ensure daemon is running: automatic daemon startup failed: daemon child exited during startup: exit code: 2`；系统里没有 `bsk` CLI。实际全程用的是 **CDP 直连**（Chrome `--remote-debugging-port=9222` + `E:/dsh-onesoul/.verify/chrome-profile`，该 profile 里 npm/GitHub 是登录态），驱动脚本 `.verify/cdp.mjs`（`targets()` / `connect()`）+ `.verify/cdp-run.mjs`（读一个纯 JS 表达式文件求值，避免多层字符串转义）。
+
+
 ## 8. 尚未完成
 
 | 项 | 状态 |

@@ -1,5 +1,8 @@
 # 阶段总结 · dsh-onesoul（Companion Bundle）
 
+**2026-11-01 夜：对外发布形态已改为单包 `dsh-onesoul@0.1.0`** —— npm https://www.npmjs.com/package/dsh-onesoul 、GitHub https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`，SSH over 443 推送）。anima 与 dashboard 的 lib 内置在包内 `plugins/`，第三方 7 包仍是 dependencies；本机两个 profile 仍用本地 `dsh-companion-bundle` 形态运行，未切换到 npm 单包。发布流程与凭证见 `docs/PUBLISH.md` 顶部。
+
+
 截至 2026-11-01 晚。**代码与装配已完成并装进用户真实环境；QQ 真人号通道已实测能回话；仅剩 npm 发布与 B站扫码两项。**
 
 2026-11-01 补记：QQ 链路当天整段失真（NapCat 登录成功但 OneBot 从不拨号），已定因并修通 —— 根因是 QQ 自动热更新到 `9.9.37-54395`、超出 NapCat 4.18.42 签名表（止于 `9.9.37-54276`），叠加「受限令牌拉起 QQ」与「QQNT 沙箱断点」两个环境问题。现在跑的是 `9.9.36-53644` + boot 模式 + `--no-sandbox`，验收见 `docs/VERIFICATION.md §7.31`。

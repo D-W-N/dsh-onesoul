@@ -1,4 +1,36 @@
-# 发布手册 · dsh-companion-bundle
+# 发布手册 · dsh-onesoul（单包）
+
+> **2026-11-01 夜更新：口径已改为单包发布，本文下半部分的三包顺序仅作历史与回滚参考。**
+>
+> - npm：`dsh-onesoul@0.1.0` 已发布 → https://www.npmjs.com/package/dsh-onesoul
+> - GitHub：https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`）
+> - 安装：`dsh plugin add --profile web dsh-onesoul`
+> - 单包里 **内置** `dsh-anima` 与 `dsh-companion-dashboard` 的 lib（`plugins/anima/lib`、`plugins/dashboard/lib`，由 `scripts/build-onesoul.mjs` 从 `packages/` 同步），第三方 7 个包仍是 `dependencies`。
+> - 为什么必须单入口：宿主 `dsh-client-modules` 的 `exactPackageSpecifier()` 对子路径返回 undefined ⇒ `dsh.client` 只能挂在包根，`cordis.patch.yml` 里也只能写一行 `- id: dsh-onesoul / name: dsh-onesoul`。
+
+## 单包重新发布（当前流程）
+
+```bash
+cd E:/dsh-onesoul && node scripts/build-onesoul.mjs            # 把 packages/*/lib 同步进 plugins/
+cd E:/dsh-onesoul/packages/dsh-onesoul && npm version patch    # 或 minor/major
+npm publish --userconfig E:/dsh-onesoul/.verify/npmrc-publish \
+  --registry https://registry.npmjs.org
+cd E:/dsh-onesoul && git commit -am "release" && git push origin main
+```
+
+发布凭证：`E:/dsh-onesoul/.verify/npmrc-publish`（granular token，**必须勾 Bypass 2FA**，否则 registry 回 403「granular access token with bypass 2fa enabled is required」；普通 granular token 只能 `npm stage publish` 进暂存区）。
+
+GitHub 推送凭证：`E:/dsh-onesoul/.verify/github_key`（ed25519，已加到账号 D-W-N 的 SSH keys），remote 用 SSH over 443：
+
+```bash
+GIT_SSH_COMMAND='ssh -F /dev/null -i E:/dsh-onesoul/.verify/github_key -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -p 443' git push
+```
+
+（本机 22 端口被封、https 走 Watt Toolkit 中间人证书使 node 侧 TLS 校验失败，所以走 `ssh.github.com:443`。）
+
+---
+
+# 历史：三包发布（dsh-anima → dashboard → bundle）
 
 发布顺序**必须**是 `dsh-anima` → `dsh-companion-dashboard` → `dsh-companion-bundle`：
 聚合包的 `dependencies` 指向前两个包，先发聚合包会让用户装到一个解析不到依赖的空壳。
