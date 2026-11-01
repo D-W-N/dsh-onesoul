@@ -1886,7 +1886,7 @@ ACCOUNT                 = 3660096629
 
 版本：`dsh-anima 0.1.9 → 0.1.10`、`dsh-companion-dashboard 0.1.34 → 0.1.35`、`dsh-companion-bundle 0.1.40 → 0.1.41`；三个 profile 已覆盖安装（desktop / web / headless），依赖行改指新 tgz。同样要重启桌面应用才生效。
 
-## 7.32 对外发布：合并成单包 `dsh-onesoul`，npm 与 GitHub 双通道落地（2026-11-01 夜）
+## 7.38 对外发布：合并成单包 `dsh-onesoul`，npm 与 GitHub 双通道落地（2026-11-01 夜）
 
 ### 7.32.1 为什么是「一个包」，不是「一个 bundle 装七个包」
 
@@ -1917,6 +1917,59 @@ ACCOUNT                 = 3660096629
 ### 7.32.4 关于浏览器工具
 
 `browser-skill` 的 `bsk_*` 六个工具已进入工具表，但本会话后端起不来：`bsk session request prepare failed: ensure daemon is running: automatic daemon startup failed: daemon child exited during startup: exit code: 2`；系统里没有 `bsk` CLI。实际全程用的是 **CDP 直连**（Chrome `--remote-debugging-port=9222` + `E:/dsh-onesoul/.verify/chrome-profile`，该 profile 里 npm/GitHub 是登录态），驱动脚本 `.verify/cdp.mjs`（`targets()` / `connect()`）+ `.verify/cdp-run.mjs`（读一个纯 JS 表达式文件求值，避免多层字符串转义）。
+
+
+## 7.39 本机两个 profile 切到 npm 单包（dsh-onesoul 0.1.2）+ 行 id 必须抄各包的 canonical id（2026-11-01 深夜）
+
+### 7.39.1 为什么要切
+
+发布只发一个 `dsh-onesoul` 之后，本机还跑着「本地 dsh-anima + 本地 dsh-companion-dashboard 两个 tarball」的老形态，等于验证的是一份别人装不到的装配。切换目标：profile 里只剩 `dsh-onesoul`，与外部用户装的完全一致。
+
+### 7.39.2 改了什么（两个 profile 都改）
+
+| 位置 | 改动 |
+| --- | --- |
+| `<profile>/package.json` 的 dependencies | 删 `dsh-anima`、`dsh-companion-dashboard` 两条，加 `dsh-onesoul: ^0.1.2` |
+| `<profile>/package.json` 的 `dsh.profile.bundles` | 摘掉 7 个（desktop 19→12、web 9→5）：dsh-deepseek-web-login / dsh-better-sidebar / dsh-meme / dsh-bili-pond / dsh-onebot-qq / dsh-napcat-keeper / dsh-our-free-model —— 它们的行现在由 dsh-onesoul 的 patch 唯一插入 |
+| `<profile>/pnpm-workspace.yaml` | 顶层加 `overrides:`（dsh-onebot-qq: 0.9.6 / dsh-meme: 0.1.65 / dsh-bili-pond: 1.3.13），否则 pnpm 会因 onesoul 的 `^0.9.9/^0.1.71/^1.3.14` 再装一份新版本 |
+| `<profile>/node_modules/dsh-onesoul` | 没有跑 pnpm install（桌面应用正开着这份 node_modules），改成把 tarball 解包目录用 fs.cpSync 直接铺进去 |
+
+pnpm 的坑：**overrides 必须写在 `pnpm-workspace.yaml` 顶层**，写在 package.json 的 `pnpm.overrides` 里 pnpm 11 完全不生效（实测 lockfile 里 0.9.6 与 0.9.9 并存）。
+
+### 7.39.3 真 bug：行 id 不能自己起名字，必须抄各包 patch 的 canonical id
+
+第一版 dsh-onesoul 的 patch 写了 `- id: dsh-better-sidebar / dsh-meme / dsh-bili-pond`，看着能挂，实际有三处硬依赖：
+
+- **dsh-bili-pond**：`lib/index.js:44`「**loader entry 的 id 必须等于命名空间名**」、`:475`「命名空间 ns 等于 loader 条目的 id（我们 cordis.patch.yml 里是 `bili-pond`）」⇒ 行 id 写错，它的配置命名空间就换了键，设置页读写的不是同一份。
+- **dsh-better-sidebar**：包里自带的 patch（`cordis.patch.yml:42`）有一行守卫 `disabled: !!js "[...ctx.loader.entries()].some((e) => e.options.name === 'dsh-better-sidebar' && e.options.id !== 'better-sidebar' && !e.disabled)"` ⇒ 出现「同包不同 id」的重复行时它会把自己关掉。
+- **dsh-meme**：插件 id 历史上就是 `dsh-expression`（包里 patch 注释原文「插件 id 仍为 dsh-expression,避免已装用户崩掉」）。
+
+修法：三行 id 改成 `better-sidebar` / `dsh-expression` / `bili-pond`，并把 `better-sidebar` 的守卫、`bili-pond` 的 `config.enabled: true` 一并抄进 onesoul 的 patch（这两个行原来由包自己的 bundle 提供，现在由 onesoul 提供，默认值不能丢）。web profile 的 `cordis.patch.yml` 里另有一段重复 insert（`- id: dsh-meme / - id: dsh-bili-pond`）已整段删除。
+
+### 7.39.4 怎么在没有桌面应用的情况下验证装配
+
+`--profile desktop` 被 Electron 独占（报 `profile "desktop" is managed exclusively by the Electron application`），所以造替身 profile：`check-onesoul`（package.json 抄 desktop 只改 name、`cordis.patch.yml` 与 `cordis.yml` 复制、`node_modules` 用 `fs.symlinkSync(..., 'junction')` 指向真实 profile），再
+
+```
+DSH_HOME=C:/Users/1/.dsh D:/nodejs/node.exe D:/DeepSeek-Harness/npm-global/node_modules/@deepseek-ai/dsh/lib/bin.js --profile check-onesoul --dump-config
+```
+
+结果（两个 profile 一致）：exit 0、314/316 行，`better-sidebar / dsh-expression / bili-pond / dsh-onesoul / dsh-onebot / onebot-settings-remote / napcat-keeper / dsh-deepseek-web-login / our-free-model` **各恰好 1 行**，`dsh-meme / dsh-bili-pond / dsh-better-sidebar / dsh-anima / dsh-companion-dashboard` 全为 0，name 均解析成真实包名（含 `dsh-onebot-qq/settings-remote`）。替身 profile 验完即删（先 unlink junction 再 rm -rf）。
+
+两点必须知道：
+- `--dump-config` 是**分层视图**（60+ 个 `# ==` 段），`tool-bash/tool-fs/persona/planning/compaction/delegation/present` 出现 3~4 次是预设与 agent 层，正常；同一插件 id 出现两次才是异常。
+- CLI 用 npm-global 里的 dsh 0.2.0-rc.2，比 Electron 自带宿主旧，会打印 `skipping profile bundle "@linxin666/dsh-web-all" ... peerDependencies >=0.2.1-rc.2` 与 `entry "desktop-shell" not found` 之类的告警 —— 都是 CLI 版本偏低导致的假警报，与本包装配无关。
+
+### 7.39.5 版本与 npm 上的一次真实事故
+
+`dsh-onesoul` 0.1.0（首个版本）→ 0.1.1（canonical id 修复）→ **0.1.2**（当前 latest）。
+0.1.1 那次的经过值得记住：`npm publish` 第一次 exit 0，但 registry 里查不到 0.1.1；再发一次报 `E409 ... Cannot publish over previously staged version "0.1.1"`，而 `npm stage list` 回 `No staged packages found`。约 1 分钟后 0.1.1 自己出现在 versions 里并成为 latest —— 走的正是 npm 的暂存发布（首版还先出现过 `dsh-onesoul@0.0.0-stage`）。**教训：publish 之后先查 registry packument（`fetch('https://registry.npmjs.org/dsh-onesoul')`）再决定要不要重发；E409 的「已暂存」不等于失败。**
+
+### 7.39.6 生效条件与回滚
+
+- 两个 profile 的 `node_modules/dsh-onesoul` 是直接铺进磁盘的，**必须重启桌面应用**才换成单包形态（当前宿主进程里还是老的 anima + dashboard 两个插件实例）。
+- 回滚：`E:/dsh-onesoul/.verify/backup-switch/{desktop,web}/` 存了切换前的 package.json、pnpm-lock.yaml、pnpm-workspace.yaml、cordis.patch.yml 四份原件，覆盖回去 + 重装即可。
+- 真机验收清单（重启后）：控制中心五个分支都在、QQ 收发正常、B站值班卡片能读、表情包能发、`/anima/api/status` 不再 404。
 
 
 ## 8. 尚未完成

@@ -1,6 +1,8 @@
 # 阶段总结 · dsh-onesoul（Companion Bundle）
 
-**2026-11-01 夜：对外发布形态已改为单包 `dsh-onesoul@0.1.0`** —— npm https://www.npmjs.com/package/dsh-onesoul 、GitHub https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`，SSH over 443 推送）。anima 与 dashboard 的 lib 内置在包内 `plugins/`，第三方 7 包仍是 dependencies；本机两个 profile 仍用本地 `dsh-companion-bundle` 形态运行，未切换到 npm 单包。发布流程与凭证见 `docs/PUBLISH.md` 顶部。
+**2026-11-01 夜：对外发布形态已改为单包 `dsh-onesoul@0.1.2`** —— npm https://www.npmjs.com/package/dsh-onesoul 、GitHub https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`，SSH over 443 推送）。anima 与 dashboard 的 lib 内置在包内 `plugins/`，第三方 7 包仍是 dependencies；本机两个 profile 仍用本地 `dsh-companion-bundle` 形态运行，未切换到 npm 单包。发布流程与凭证见 `docs/PUBLISH.md` 顶部。
+
+**2026-11-01 深夜：本机 desktop / web 两个 profile 已切到单包** —— 依赖里删掉 dsh-anima 与 dsh-companion-dashboard，改成 `dsh-onesoul: ^0.1.2`（bundles 里 7 个第三方 bundle 摘掉，行改由 onesoul 的 patch 唯一插入，id 一律抄各包 canonical：`better-sidebar` / `dsh-expression` / `bili-pond`）。node_modules 是直接铺进磁盘的（没跑 pnpm install），**要重启桌面应用才生效**；回滚备份在 `E:/dsh-onesoul/.verify/backup-switch/{desktop,web}/`。详见 VERIFICATION §7.39。
 
 
 截至 2026-11-01 晚。**代码与装配已完成并装进用户真实环境；QQ 真人号通道已实测能回话；仅剩 npm 发布与 B站扫码两项。**

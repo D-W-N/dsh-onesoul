@@ -2,8 +2,8 @@
 
 > **2026-11-01 夜更新：口径已改为单包发布，本文下半部分的三包顺序仅作历史与回滚参考。**
 >
-> - npm：`dsh-onesoul@0.1.0` 已发布 → https://www.npmjs.com/package/dsh-onesoul
-> - GitHub：https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`）
+> - npm：`dsh-onesoul@0.1.2` 已发布（0.1.0 首版 → 0.1.1 行 id 修正 → 0.1.2 当前 latest） → https://www.npmjs.com/package/dsh-onesoul
+> - GitHub：https://github.com/D-W-N/dsh-onesoul （tag `v0.1.2`）
 > - 安装：`dsh plugin add --profile web dsh-onesoul`
 > - 单包里 **内置** `dsh-anima` 与 `dsh-companion-dashboard` 的 lib（`plugins/anima/lib`、`plugins/dashboard/lib`，由 `scripts/build-onesoul.mjs` 从 `packages/` 同步），第三方 7 个包仍是 `dependencies`。
 > - 为什么必须单入口：宿主 `dsh-client-modules` 的 `exactPackageSpecifier()` 对子路径返回 undefined ⇒ `dsh.client` 只能挂在包根，`cordis.patch.yml` 里也只能写一行 `- id: dsh-onesoul / name: dsh-onesoul`。
