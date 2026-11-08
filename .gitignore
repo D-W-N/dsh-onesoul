@@ -22,3 +22,6 @@ Thumbs.db
 .idea/
 *.bak
 .pnpm-store/
+
+# 免费模型打工的中间产物（规格/草稿/临时缓存）
+.work/
