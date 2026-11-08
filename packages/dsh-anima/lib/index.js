@@ -34,6 +34,9 @@ import {
   refreshEphemeral,
   renderEphemeralSection,
 } from './ephemeral.js'
+import { applyRuntimeEvent, normalizeRuntime, runtimePath, summarizeRuntime } from './runtime.js'
+import { describePresence, roomById } from './presence.js'
+import { describeMood } from './mood.js'
 
 export { KEEP_DAYS, readEphemeralSync, refreshEphemeral, queryEphemeral, renderEphemeralSection, ephemeralSummary }
 export const name = 'dsh-anima'
@@ -99,7 +102,7 @@ export function apply(ctx, pluginConfig) {
   const allowLan = config.allowLan === true
   // 值班 profile 整个进程都算 Onesoul 通道（它没有 QQ 那种会话 id 前缀可认）。
   const channelProfile = config.channelProfile === true
-  const state = { persona: emptyState(), memory: emptyMemory(), settings: normalizeSettings(null), personaStamp: '', memoryStamp: '', settingsStamp: '', cwd: '' }
+  const state = { persona: emptyState(), memory: emptyMemory(), settings: normalizeSettings(null), personaStamp: '', memoryStamp: '', settingsStamp: '', runtime: normalizeRuntime(null, nowIso()), runtimeStamp: '', cwd: '' }
   let chain = Promise.resolve()
 
   function serialize(task) {
@@ -125,6 +128,12 @@ export function apply(ctx, pluginConfig) {
       state.settingsStamp = sStamp
       state.settings = normalizeSettings(readJsonSync(settingsPath(), null))
     }
+    const rStamp = stampOf(runtimePath())
+    // 写盘期间 stamp 是 'writing'，这时读盘会拿到半截/旧内容把内存里的新事件盖掉
+    if (state.runtimeStamp !== 'writing' && rStamp !== state.runtimeStamp) {
+      state.runtimeStamp = rStamp
+      state.runtime = normalizeRuntime(readJsonSync(runtimePath(), null), nowIso())
+    }
   }
 
   async function persistPersona() {
@@ -137,6 +146,22 @@ export function apply(ctx, pluginConfig) {
     state.settingsStamp = 'writing'
     await writeJson(settingsPath(), state.settings)
     state.settingsStamp = stampOf(settingsPath())
+  }
+
+  async function persistRuntime() {
+    state.runtimeStamp = 'writing'
+    try {
+      await writeJson(runtimePath(), state.runtime)
+    } finally {
+      state.runtimeStamp = stampOf(runtimePath())
+    }
+  }
+
+  // 停留/破例时长：给了就取合法分钟数，超过一天按一天算，其它（NaN、负数、空）一律当作没给
+  function minutesOfStay(value) {
+    const n = Number(value)
+    if (!Number.isFinite(n) || n <= 0) return undefined
+    return Math.min(Math.round(n), 1440)
   }
 
   async function persistMemory() {
@@ -218,7 +243,7 @@ export function apply(ctx, pluginConfig) {
             const channelId = channelIdOf(context)
             const applies = channelProfile === true || memoryApplies(state.settings, channelId)
             if (!applies) return ''
-            return renderPromptSection(state.persona, state.memory, state.cwd) + renderEphemeralSection(ephemeralSync())
+            return renderPromptSection(state.persona, state.memory, state.cwd) + renderEphemeralSection(ephemeralSync()) + '\n\n' + summarizeRuntime(state.runtime, nowIso())
           } catch (error) {
             return '## 你的人设（dsh-anima）\n人设读取失败，按默认助手身份回答，并提示用户检查 ' + animaDir() + '。'
           }
@@ -540,6 +565,93 @@ export function apply(ctx, pluginConfig) {
           }
           await persistMemory()
           return '已导入 ' + items.length + ' 条候选记忆，待审共 ' + pendingMemories(state.memory).length + ' 条。请用 anima_memory_pending + anima_memory_decide 逐条裁决。'
+        })
+      },
+    }))
+
+    toolService.register(defineTool({
+      name: 'anima_state_get',
+      description: '读取 anima 当前 runtime 状态（说话门、在场、心情、日程等）；需要查看或排查她此刻状态时使用。',
+      parameters: {},
+      output: { schema: { type: 'string' }, render: function (_args, value) { return textOf(value) } },
+      async execute() {
+        refreshSync()
+        return summarizeRuntime(state.runtime, nowIso()) + '\n\n' + JSON.stringify(state.runtime, null, 2)
+      },
+    }))
+
+    toolService.register(defineTool({
+      name: 'anima_presence_move',
+      description: '设置 anima 当前所在房间和活动；需要让她移动、换房间或记录所在位置时使用。',
+      parameters: {
+        room: { type: 'string', required: true, description: '要移动到的房间' },
+        activity: { type: 'string', description: '当前活动，如看书、工作；省略则不指定' },
+        minutes: { type: 'number', description: '预计停留分钟数；省略表示不设时限' },
+      },
+      output: { schema: { type: 'string' }, render: function (_args, value) { return textOf(value) } },
+      async execute(args) {
+        return serialize(async function () {
+          refreshSync()
+          const room = typeof args.room === 'string' ? args.room.trim() : ''
+          if (!roomById(room)) throw new Error('没有这个房间：' + room + '（可用：living / dining / balcony / guest / kitchen / entry / study）')
+          state.runtime = applyRuntimeEvent(state.runtime, {
+            type: 'move-to',
+            room: room,
+            activity: typeof args.activity === 'string' ? args.activity.trim().slice(0, 80) : undefined,
+            minutes: minutesOfStay(args.minutes),
+          }, nowIso())
+          await persistRuntime()
+          return describePresence(state.runtime.presence, nowIso())
+        })
+      },
+    }))
+
+    toolService.register(defineTool({
+      name: 'anima_mood_note',
+      description: '记录一条会影响 anima 心情的消息或事件；需要根据对话、反馈或事件更新她心情时使用。',
+      parameters: {
+        text: { type: 'string', required: true, description: '要记录的消息或事件文本' },
+      },
+      output: { schema: { type: 'string' }, render: function (_args, value) { return textOf(value) } },
+      async execute(args) {
+        return serialize(async function () {
+          refreshSync()
+          const text = typeof args.text === 'string' ? args.text.trim().slice(0, 2000) : ''
+          if (!text) throw new Error('text 不能为空')
+          state.runtime = applyRuntimeEvent(state.runtime, { type: 'message', text: text }, nowIso())
+          await persistRuntime()
+          return describeMood(state.runtime.mood)
+        })
+      },
+    }))
+
+    toolService.register(defineTool({
+      name: 'anima_quiet',
+      description: '控制 anima 的安静/说话门状态；需要晚安、早安、临时覆盖或抑制她说话时使用。',
+      parameters: {
+        action: { type: 'string', required: true, description: '动作：goodnight/goodmorning/override/suppressed' },
+        minutes: { type: 'number', description: '安静或覆盖持续分钟数；省略表示按默认' },
+        text: { type: 'string', description: '附带的说明文本' },
+        kind: { type: 'string', description: '安静/覆盖的类型标记' },
+      },
+      output: { schema: { type: 'string' }, render: function (_args, value) { return textOf(value) } },
+      async execute(args) {
+        return serialize(async function () {
+          refreshSync()
+          const ACTIONS = ['goodnight', 'goodmorning', 'override', 'suppressed']
+          const action = typeof args.action === 'string' ? args.action.trim() : ''
+          if (ACTIONS.indexOf(action) < 0) throw new Error('action 只能是 ' + ACTIONS.join(' / '))
+          const minutes = minutesOfStay(args.minutes)
+          state.runtime = applyRuntimeEvent(state.runtime, {
+            type: action,
+            minutes: minutes,
+            text: args.text,
+            kind: args.kind,
+          }, nowIso())
+          await persistRuntime()
+          return String(summarizeRuntime(state.runtime, nowIso())).split('\n').find(function (line) {
+            return line.startsWith('- 说话门：')
+          }) || '说话门：未知'
         })
       },
     }))

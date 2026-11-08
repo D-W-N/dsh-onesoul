@@ -1,0 +1,80 @@
+{
+  "quiet": {
+    "state": "quiet",
+    "since": "2026-11-08T05:53:10.107Z",
+    "lastUserAt": "2026-11-08T05:53:10.107Z",
+    "quietSince": "2026-11-08T05:53:10.107Z",
+    "suppressed": [],
+    "overrideUntil": null
+  },
+  "presence": {
+    "room": null,
+    "activity": "",
+    "since": null,
+    "moving": {
+      "from": null,
+      "to": "study",
+      "arriveAt": "2026-11-08T05:56:10.107Z",
+      "activity": "做事"
+    },
+    "lastPlannedAt": "2026-11-08T05:53:10.107Z",
+    "holdUntil": null
+  },
+  "mood": {
+    "valence": 0.15000000000000002,
+    "arousal": 0.15,
+    "lastReason": "",
+    "topHits": []
+  },
+  "routine": [
+    {
+      "from": "07:00",
+      "to": "09:00",
+      "room": "kitchen",
+      "activity": "吃早饭"
+    },
+    {
+      "from": "09:00",
+      "to": "12:00",
+      "room": "study",
+      "activity": "看书"
+    },
+    {
+      "from": "12:00",
+      "to": "13:30",
+      "room": "dining",
+      "activity": "吃午饭"
+    },
+    {
+      "from": "13:30",
+      "to": "18:00",
+      "room": "study",
+      "activity": "做事"
+    },
+    {
+      "from": "18:00",
+      "to": "19:30",
+      "room": "dining",
+      "activity": "吃晚饭"
+    },
+    {
+      "from": "19:30",
+      "to": "23:30",
+      "room": "living",
+      "activity": "在客厅待着"
+    },
+    {
+      "from": "23:30",
+      "to": "07:00",
+      "room": "guest",
+      "activity": "睡着"
+    }
+  ],
+  "quietCfg": {
+    "from": "23:30",
+    "to": "07:00",
+    "drowsyIdleMin": 25,
+    "quietIdleMin": 55
+  },
+  "updatedAt": "2026-11-08T05:53:10.107Z"
+}

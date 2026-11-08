@@ -1,0 +1,23 @@
+✔ minutesOfDay：合法与非法输入 (0.8421ms)
+✔ inWindow：跨零点与空窗口 (0.1402ms)
+✖ normalizeQuiet：脏输入回落默认，且不抛异常 (0.822ms)
+✔ emptyQuiet：初始为醒着，无待说清单 (1.2482ms)
+✔ goodnight / goodmorning / user-message 的状态迁移 (0.3695ms)
+✔ goodmorning 不清空待说清单 (0.1935ms)
+✔ noteSuppressed：带时间、纯函数、上限 50 条丢最旧 (0.2661ms)
+✖ tick：窗口内空闲到点才睡，窗口外回醒 (0.2705ms)
+✔ canSpeak：drowsy 只放行 urgent，override 优先且会过期 (0.1905ms)
+✔ 未知事件：不改变语义状态 (0.1951ms)
+ℹ tests 10
+--
+
+test at scripts\test-quiet.mjs:32:1
+✖ normalizeQuiet：脏输入回落默认，且不抛异常 (0.822ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1410 !== '23:30'
+  
+      at TestContext.<anonymous> (file:///E:/dsh-onesoul/scripts/test-quiet.mjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)

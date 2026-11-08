@@ -5,12 +5,13 @@
  * 对外只发布 dsh-onesoul 一个包。
  *
  *   node scripts/build-onesoul.mjs          # 同步
- *   node scripts/build-onesoul.mjs --pack   # 同步后 npm pack 到 .verify/tarballs
+ *   node scripts/build-onesoul.mjs --pack   # 同步后 npm pack 到 .local-tarballs
  */
-import { cpSync, existsSync, mkdirSync, rmSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, rmSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { tmpdir } from 'node:os'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkgDir = join(root, 'packages', 'dsh-onesoul')
@@ -32,14 +33,23 @@ for (const item of sources) {
   for (const line of files) console.log('  ' + line)
 }
 
+// client module id: the host keys client modules by the resolved package name,
+// so the vendored dashboard client must register as dsh-onesoul, not dsh-companion-dashboard
+const clientFile = join(plugins, 'dashboard', 'lib', 'client.js')
+const clientSrc = readFileSync(clientFile, 'utf8')
+const clientOut = clientSrc.replace(/id: 'dsh-companion-dashboard',/, "id: 'dsh-onesoul',")
+if (clientOut === clientSrc) throw new Error('client module id rewrite did not apply: ' + clientFile)
+writeFileSync(clientFile, clientOut)
+console.log("client module id: dsh-companion-dashboard -> dsh-onesoul")
+
 const manifest = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'))
 console.log('package: ' + manifest.name + '@' + manifest.version)
 console.log('entry:   lib/index.js -> plugins/anima/lib/index.js + plugins/dashboard/lib/index.js')
 console.log('client:  ' + manifest.exports['./client'])
 
 if (process.argv.includes('--pack')) {
-  const out = join(root, '.verify', 'tarballs')
+  const out = join(root, '.local-tarballs')
   mkdirSync(out, { recursive: true })
-  const res = execSync('npm pack --pack-destination "' + out + '" --cache "' + join(root, '.probe', 'npmcache') + '" --silent', { cwd: pkgDir, encoding: 'utf8', shell: true })
+  const res = execSync('npm pack --pack-destination "' + out + '" --cache "' + join(tmpdir(), 'dsh-onesoul-npmcache') + '" --silent', { cwd: pkgDir, encoding: 'utf8', shell: true })
   console.log('packed: ' + out + '\\' + res.trim().split(/\r?\n/).pop())
 }

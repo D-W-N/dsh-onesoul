@@ -1974,6 +1974,39 @@ DSH_HOME=C:/Users/1/.dsh D:/nodejs/node.exe D:/DeepSeek-Harness/npm-global/node_
 - 真机验收清单（重启后）：控制中心五个分支都在、QQ 收发正常、B站值班卡片能读、表情包能发、`/anima/api/status` 不再 404。
 
 
+## 7.40 运行时接线：静默门 / 在场 / 心情接进 anima（2026-11-08）
+
+### 7.40.1 分工
+四个纯逻辑模块与接线代码由**免费模型**起草（网关 `http://127.0.0.1:8326/v1`，模型 `cline/openrouter/free`、`buddy/deepseek-v4.1-flash`、`loomy/auto`，工具 `scripts/free-worker.mjs`），协调者只做三件事：写验收测试、修语义、跑全量回归。她的对话模型不动（免费通道随时会挂）。
+
+| 模块 | 文件 | 测试 | 结果 |
+|---|---|---|---|
+| 静默门 | `packages/dsh-anima/lib/quiet.js`（158 行） | `scripts/test-quiet.mjs` | 11/11 |
+| 在场状态 | `packages/dsh-anima/lib/presence.js`（359 行） | `scripts/test-presence.mjs` | 11/11 |
+| 心情评估 | `packages/dsh-anima/lib/mood.js` | `scripts/test-mood.mjs` | 13/13 |
+| 胶水层 | `packages/dsh-anima/lib/runtime.js` | `scripts/test-runtime.mjs` | 9/9 |
+
+### 7.40.2 接线方式（`packages/dsh-anima/lib/index.js`）
+- `refreshSync()` 增加 runtime 热加载：`stampOf(runtimePath())` ≠ `state.runtimeStamp` 时读盘并 `normalizeRuntime`；**写盘期间 stamp 是 `'writing'`，这条路径直接跳过**，否则同步渲染会读到半截文件把内存里的新事件盖掉。
+- `persistRuntime()` 用 `try/finally` 重算 stamp，写失败也不会永久停在 `'writing'`。
+- 系统提示在 `renderPromptSection(...) + renderEphemeralSection(...)` 之后追加 `summarizeRuntime(state.runtime, nowIso())`，即「## 此刻的状态」（位置 / 心情 / 说话门 三行 + 攒着的话）。`memoryApplies` 为 false（仅 Onesoul 通道模式下桌面侧）仍然整段不注入。
+- 四个新工具：`anima_state_get`（摘要 + 全文）、`anima_presence_move`（room 必须在 `ROOMS` 白名单内）、`anima_mood_note`（text 截断 2000 字）、`anima_quiet`（action 白名单 goodnight/goodmorning/override/suppressed）。全部走既有 `serialize()` 串行写盘，进入前先 `refreshSync()`，避免把 dashboard/HTTP 路由刚写的外部状态整份盖掉。`minutes` 统一过 `minutesOfStay()`：非法/负数/空 → undefined，上限 1440。
+
+### 7.40.3 免费模型写出来、被验收抓到的缺陷（每处都写了「人工修正」注释）
+- `quiet.js`：`normalizeQuiet` 把非法空闲门槛钳成 0（规格要求回落默认）。
+- `presence.js`：`room === null` 时 move-to 会造出「从 null 出发」的移动；`tick` 落地与按日程出发拆成了两次判断，导致她在错误房间多待一 tick；缺 `HOLD_MINUTES = 30` 让位期（刚被派去阳台三分钟就自己走回书房）。
+- `mood.js`：非法正则 `/\\?+/` 与 `0_5`；空输入返回 `[]` 却被按对象解构；`valenceLabel` 对非数字回「很差」（规格：按 0 → 平静）；衰减封的是比率而非绝对步长。**语义加宽**：负面词 10 → 28（难受/骂/委屈/想哭/焦虑/头疼/压力…），负面唤醒固定 `+0.22`、感叹号 `+0.08` 上限 0.35 —— 改前「被老板骂了，好难受！！！」判成「平静」。
+- `runtime.js`：import 了 mood.js 根本不存在的 `normalizeMood`（整个插件加载即失败）。
+- 接线：`describeMood` / `describePresence` 不在 runtime.js 的导出里（要分别从 mood.js / presence.js 取）；`anima_quiet` 的事件对象里 `minutes` 写重了一次（后者会把钳好的值覆盖成原始入参）。
+
+### 7.40.4 验收证据
+- `node --test scripts/test-quiet.mjs scripts/test-presence.mjs scripts/test-mood.mjs scripts/test-runtime.mjs` → **43/43 pass**。
+- `node --import ./scripts/shims/resolver.mjs scripts/smoke.mjs` → **31/31 pass**（原 29 + `runtime 接线：静默门/位置/心情真的进提示词，且落盘可复读` + `runtime 接线：非法输入挡在门外`）。新用例覆盖：提示词含「## 此刻的状态」三行、move 后提示词出现「书房」且 `anima/runtime.json` 真写盘、负面消息后提示词出现「先接住情绪」、`goodnight` 后「静默中」、**同一 home 起第二个 ctx 仍读到「静默中」（热加载而非默认醒着）**、非法房间/非法 action/空 text 全部被拒且不写盘、负分钟不产生 Invalid Date。
+- 内置副本：`node scripts/build-onesoul.mjs --pack`（vendored anima 9 文件 / dashboard 8 文件，client id 自动重写成 `dsh-onesoul`）→ `.local-tarballs/dsh-onesoul-0.1.4.tgz`；把 tarball 解到空目录直接 import，`TARBALL OK tools=17 runtime.json 落盘 提示词含此刻状态`。17 = 原 13 + 新 4。
+
+### 7.40.5 版本与生效条件
+`packages/dsh-onesoul` 0.1.3 → **0.1.4**；`C:/Users/1/.dsh/profiles/desktop/package.json` 的依赖改成 `file:E:/dsh-onesoul/.local-tarballs/dsh-onesoul-0.1.4.tgz`（备份 `package.json.bak-runtime-wiring`）。**桌面应用重启时由它自己的 install 步骤换成 0.1.4 才生效**——运行中的进程锁着 `node_modules/dsh-onesoul` 里的文件，就地替换会 `Permission denied`。
+
 ## 8. 尚未完成
 
 | 项 | 状态 |
@@ -1995,3 +2028,7 @@ DSH_HOME=C:/Users/1/.dsh D:/nodejs/node.exe D:/DeepSeek-Harness/npm-global/node_
 | 表情标记配图的真机验收 | 0.1.30 已装进 desktop/web；重启后在 QQ 里让它发表情，收到的应是图片而不是 `[表情: 描述]` 这行字；`C:/Users/1/.dsh/media/onebot/qq-actions.log` 里应出现带图片段的那次 `send_msg`，`GET /companion/api/media-roots` 的 `inline.packs` 应为 `['maid-emoji','whale-girl-emoji']` |
 | 记忆生效范围的真机验收 | anima 0.1.10 + dashboard 0.1.35 已装进 desktop / web / headless；重启后控制中心「记忆」分支应出现「记忆生效范围」卡片，点「仅 Onesoul 通道」后：QQ 里仍有记忆索引，桌面侧普通会话只剩人设；`C:/Users/1/.dsh/anima/settings.json` 的 `memoryScope` 应为 `onesoul`；值班进程（headless，`channelProfile: true`）不受影响 |
 | `dshBin` 是手工补的 | 桌面应用里没有 CLI，`dshBin` 必须指到 npm 全局装的 `lib/bin.js`；打包给别人时这一项要写进 README 的安装步骤 |
+| 运行时接线的桌面验收 | dsh-onesoul 0.1.4 已改依赖到本地 tarball；重启桌面后 `anima_status` 之外应多出 `anima_state_get` / `anima_presence_move` / `anima_mood_note` / `anima_quiet` 四个工具，系统提示末尾出现「## 此刻的状态」；喊一次晚安后应变成「静默中」 |
+| runtime 事件无上限 | 心情/待说清单目前只增不减，每轮都进提示词；等真机跑几天后要按时间窗裁剪 |
+| 心情否定句的措辞 | `不难过` 的数值翻面正确，但 `lastReason` 仍引用原词，看起来像判反 |
+| 小爱 M0 探针 | 需用户米家账号登录（miservice + passToken），探针内容：列 DID → 让小爱说一句 → 让小爱播一个局域网 URL |

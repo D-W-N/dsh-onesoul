@@ -1050,3 +1050,60 @@ test('dashboard: 鱼塘自动运行按星期开（pond-gate 停放/归还）', a
   rmSync(pond, { recursive: true, force: true })
   rmSync(join(home, 'companion'), { recursive: true, force: true })
 })
+
+test('runtime 接线：静默门/位置/心情真的进提示词，且落盘可复读', async function () {
+  const env = makeCtx()
+  anima.apply(env.ctx, {})
+  for (const tool of ['anima_state_get', 'anima_presence_move', 'anima_mood_note', 'anima_quiet']) {
+    assert.ok(env.tools.has(tool), '缺少工具 ' + tool)
+  }
+  const section = env.sections[0]
+  const initial = section.text()
+  assert.ok(initial.includes('## 此刻的状态'), '提示词必须有此刻的状态段')
+  assert.match(initial, /- 说话门：/)
+  assert.match(initial, /- 位置：/)
+  assert.match(initial, /- 心情：/)
+
+  const moved = await env.tools.get('anima_presence_move').execute({ room: 'study', activity: '看书' }, {})
+  assert.ok(typeof moved === 'string' && moved.length > 0, 'move 要回一句人话')
+  assert.ok(section.text().includes('书房'), '换了房间，提示词里就要看到书房')
+  const onDisk = JSON.parse(readFileSync(join(home, 'anima', 'runtime.json'), 'utf8'))
+  assert.equal(onDisk.presence.room, 'study', 'runtime.json 必须真的写盘')
+
+  const note = await env.tools.get('anima_mood_note').execute({ text: '被老板骂了，好难受！！！' }, {})
+  assert.ok(typeof note === 'string' && note.length > 0)
+  assert.match(section.text(), /先接住情绪/, '心情差了，提示词要提醒先接住情绪')
+
+  const quiet = await env.tools.get('anima_quiet').execute({ action: 'goodnight' }, {})
+  assert.match(quiet, /^- 说话门：/, 'anima_quiet 必须回说话门那一行')
+  assert.match(section.text(), /静默中/, '晚安之后提示词里必须是静默中')
+
+  const dumped = await env.tools.get('anima_state_get').execute({}, {})
+  assert.ok(dumped.includes('## 此刻的状态') && dumped.includes('"quiet"'), 'state_get 要同时给摘要和全文')
+
+  const env2 = makeCtx()
+  anima.apply(env2.ctx, {})
+  assert.match(env2.sections[0].text(), /静默中/, '重启后必须从 runtime.json 读回来，而不是回到默认醒着')
+})
+
+test('runtime 接线：非法输入挡在门外，写盘失败不回卡死', async function () {
+  const env = makeCtx()
+  anima.apply(env.ctx, {})
+  const move = env.tools.get('anima_presence_move')
+  const quiet = env.tools.get('anima_quiet')
+  const note = env.tools.get('anima_mood_note')
+
+  await assert.rejects(() => move.execute({ room: '月球' }, {}), /没有这个房间/)
+  await assert.rejects(() => move.execute({ room: '' }, {}), /没有这个房间/)
+  await assert.rejects(() => quiet.execute({ action: 'sleep' }, {}), /action 只能是/)
+  await assert.rejects(() => note.execute({ text: '   ' }, {}), /不能为空/)
+
+  const onDisk = JSON.parse(readFileSync(join(home, 'anima', 'runtime.json'), 'utf8'))
+  assert.equal(onDisk.presence.room === '月球', false, '被拒绝的请求不得写盘')
+
+  await quiet.execute({ action: 'override', minutes: -30 }, {})
+  const after = JSON.parse(readFileSync(join(home, 'anima', 'runtime.json'), 'utf8'))
+  const until = Date.parse(after.quiet.overrideUntil)
+  assert.ok(Number.isFinite(until), '负数分钟不得写出 Invalid Date')
+  assert.ok(until - Date.now() <= 24 * 3600 * 1000, '破例时长上限一天')
+})
