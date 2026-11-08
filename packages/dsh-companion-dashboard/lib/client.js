@@ -225,6 +225,154 @@ window.__ModuleLoader__.load({
       return h('span', { className: 'cmp-badge ' + (props.ok ? 'ok' : 'no') }, props.ok ? '已安装' : '未安装')
     }
 
+    // ---- 家分支：她在哪个房间，点一下就过去（数据来自 dsh-anima 的 /anima/api/runtime） ----
+function HomeBranch() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [hoverId, setHoverId] = useState(null);
+
+  const ACT = { living: "窝着", dining: "吃饭", balcony: "晒太阳", study: "看书", guest: "躺着", kitchen: "做饭", entry: "换鞋" };
+  const NAME = { living: "客厅", dining: "餐厅", balcony: "阳台", study: "书房", guest: "次卧", kitchen: "厨房·餐室", entry: "玄关" };
+  const ORDER = ["living", "dining", "balcony", "study", "guest", "kitchen", "entry"];
+
+  useEffect(() => {
+    let timer;
+    const load = async () => {
+      try {
+        setErr(null);
+        setData(await apiGet(ANIMA + "/runtime"));
+      } catch (e) {
+        setErr(String(e));
+      }
+    };
+    load();
+    timer = setInterval(load, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const post = useCallback(async (payload) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const d = await apiPost(ANIMA + "/runtime/event", payload);
+      setData(prev => ({ ...prev, runtime: d.runtime, summary: d.summary }));
+    } catch (e) {
+      setErr(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  if (!data) {
+    return h(Card, { title: "她在家的位置" }, h("div", { style: { fontSize: "12px", color: "#999" } }, "加载中..."));
+  }
+
+  const rooms = data.rooms || [];
+  const roomById = {};
+  rooms.forEach(r => { roomById[r.id] = r; });
+
+  const runtime = data.runtime || {};
+  const presence = runtime.presence || {};
+  const mood = runtime.mood || {};
+  const quiet = runtime.quiet || {};
+  const currentRoom = presence.room;
+  const moving = presence.moving;
+
+  const cellStyle = (id) => {
+    const isCurrent = id === currentRoom;
+    const isTarget = moving && moving.to === id;
+    const isHover = hoverId === id;
+    let border = "1px var(--dsw-alias-border-l1)";
+    let bg = "var(--dsw-alias-bg-layer-1)";
+    if (isCurrent) {
+      border = "2px #e0a34f";
+      bg = "rgba(224,163,79,.12)";
+    } else if (isTarget) {
+      border = "1px dashed #e0a34f";
+    }
+    if (isHover && !isCurrent) {
+      border = "1px #e0a34f";
+    }
+    return {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "44px",
+      width: "100%",
+      borderRadius: "8px",
+      border,
+      background: bg,
+      fontSize: "12px",
+      cursor: busy ? "not-allowed" : "pointer",
+      pointerEvents: busy ? "none" : "auto",
+      opacity: busy ? 0.6 : 1,
+      boxSizing: "border-box"
+    };
+  };
+
+  const cells = [];
+  ORDER.forEach(id => {
+    if (!roomById[id]) {
+      cells.push(h("div", { key: id, style: { height: "44px" } }));
+      return;
+    }
+    const isCurrent = id === currentRoom;
+    cells.push(h("div", {
+      key: id,
+      style: cellStyle(id),
+      onMouseEnter: () => setHoverId(id),
+      onMouseLeave: () => setHoverId(null),
+      onClick: async () => {
+        if (busy) return;
+        await post({ type: "move-to", room: id, activity: ACT[id] });
+      }
+    }, NAME[id] + (isCurrent ? " ·" : "")));
+  });
+
+  let locText;
+  if (moving) {
+    locText = "正在去 " + NAME[moving.to] + " 的路上";
+  } else if (currentRoom) {
+    locText = "她在 " + NAME[currentRoom] + (presence.activity ? "，" + presence.activity : "");
+  } else {
+    locText = "位置未知";
+  }
+  const quietMap = { awake: "醒着", drowsy: "半睡", quiet: "静默中" };
+  const info = locText + "  ·  心情 " + (data.moodLabel || mood.label || "") + "  ·  说话门 " + (quietMap[quiet.state] || quiet.state || "");
+
+  const btnBase = {
+    padding: "6px 12px",
+    fontSize: "12px",
+    borderRadius: "6px",
+    border: "1px var(--dsw-alias-border-l1)",
+    background: "var(--dsw-alias-bg-layer-1)",
+    cursor: busy ? "not-allowed" : "pointer"
+  };
+
+  const quick = [
+    { label: "晚安", payload: { type: "goodnight" } },
+    { label: "早安", payload: { type: "goodmorning" } },
+    { label: "现在破例 30 分钟", payload: { type: "override", minutes: 30 } }
+  ].map(b => h("button", {
+    key: b.label,
+    type: "button",
+    disabled: busy,
+    style: btnBase,
+    onClick: async () => {
+      if (busy) return;
+      await post(b.payload);
+    }
+  }, b.label));
+
+  return h(Card, { title: "她在家的位置" },
+    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "12px" } }, cells),
+    h("div", { style: { fontSize: "12px", color: "#666", marginBottom: "8px" } }, info),
+    h("div", { style: { display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" } }, quick),
+    err ? h("div", { style: { color: "#d9534f", fontSize: "12px" } }, err) : null
+  );
+}
+
     // ---- 记忆分支：原生内嵌裁决 ----
     function MemoryBranch(props) {
       const [pending, setPending] = useState({ total: 0, entries: [] })
@@ -1348,7 +1496,9 @@ window.__ModuleLoader__.load({
           ),
         )),
         toast ? h('div', { className: 'cmp-toast', style: { margin: '8px 12px 0' } }, toast) : null,
-        current.id === 'model'
+        current.id === 'home'
+          ? h(HomeBranch, null)
+          : current.id === 'model'
           ? h(ModelBranch, null)
           : current.id === 'memory'
             ? h(MemoryBranch, { onCounts: reload })

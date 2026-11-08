@@ -377,6 +377,7 @@ function buildStatus() {
     generatedAt: new Date().toISOString(),
     home: dshHome(),
     branches: [
+      { id: 'home', title: '家', native: true, ready: installed.anima.installed, hint: installed.anima.installed ? '她在哪个房间、点一下就过去' : '需要安装 dsh-anima' },
       { id: 'memory', title: '记忆', native: true, ready: installed.anima.installed, hint: installed.anima.installed ? '候选记忆在这里逐条裁决' : '需要安装 dsh-anima' },
       { id: 'qq', title: 'QQ', native: false, ready: installed.qq.installed, hint: installed.qq.installed ? '登录与人格实例在 QQ 机器人设置面板' : '需要安装 @zaofan/dsh-qqbot（web profile）' },
       { id: 'bili', title: 'B站', native: false, ready: installed.bili.installed, hint: installed.bili.installed ? '扫码登录与日报在 B站插件设置面板；写操作默认关闭' : '需要安装 dsh-bili-pond' },

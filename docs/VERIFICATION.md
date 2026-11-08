@@ -2001,11 +2001,19 @@ DSH_HOME=C:/Users/1/.dsh D:/nodejs/node.exe D:/DeepSeek-Harness/npm-global/node_
 
 ### 7.40.4 验收证据
 - `node --test scripts/test-quiet.mjs scripts/test-presence.mjs scripts/test-mood.mjs scripts/test-runtime.mjs` → **43/43 pass**。
-- `node --import ./scripts/shims/resolver.mjs scripts/smoke.mjs` → **31/31 pass**（原 29 + `runtime 接线：静默门/位置/心情真的进提示词，且落盘可复读` + `runtime 接线：非法输入挡在门外`）。新用例覆盖：提示词含「## 此刻的状态」三行、move 后提示词出现「书房」且 `anima/runtime.json` 真写盘、负面消息后提示词出现「先接住情绪」、`goodnight` 后「静默中」、**同一 home 起第二个 ctx 仍读到「静默中」（热加载而非默认醒着）**、非法房间/非法 action/空 text 全部被拒且不写盘、负分钟不产生 Invalid Date。
+- `node --import ./scripts/shims/resolver.mjs scripts/smoke.mjs` → **32/32 pass**（原 29 + `runtime 接线：静默门/位置/心情真的进提示词，且落盘可复读` + `runtime 接线：非法输入挡在门外`）。新用例覆盖：提示词含「## 此刻的状态」三行、move 后提示词出现「书房」且 `anima/runtime.json` 真写盘、负面消息后提示词出现「先接住情绪」、`goodnight` 后「静默中」、**同一 home 起第二个 ctx 仍读到「静默中」（热加载而非默认醒着）**、非法房间/非法 action/空 text 全部被拒且不写盘、负分钟不产生 Invalid Date。
 - 内置副本：`node scripts/build-onesoul.mjs --pack`（vendored anima 9 文件 / dashboard 8 文件，client id 自动重写成 `dsh-onesoul`）→ `.local-tarballs/dsh-onesoul-0.1.4.tgz`；把 tarball 解到空目录直接 import，`TARBALL OK tools=17 runtime.json 落盘 提示词含此刻状态`。17 = 原 13 + 新 4。
 
 ### 7.40.5 版本与生效条件
 `packages/dsh-onesoul` 0.1.3 → **0.1.4**；`C:/Users/1/.dsh/profiles/desktop/package.json` 的依赖改成 `file:E:/dsh-onesoul/.local-tarballs/dsh-onesoul-0.1.4.tgz`（备份 `package.json.bak-runtime-wiring`）。**桌面应用重启时由它自己的 install 步骤换成 0.1.4 才生效**——运行中的进程锁着 `node_modules/dsh-onesoul` 里的文件，就地替换会 `Permission denied`。
+
+### 7.40.6 控制中心「家」分支（房间卡片真动起来）
+新增原生分支 `home`（`buildStatus().branches[0]`，`ready = installed.anima.installed`），组件 `HomeBranch` 写进 `packages/dsh-companion-dashboard/lib/client.js`：
+- 平面图三列网格（客厅/餐厅/阳台 · 书房/次卧/厨房·餐室 · 玄关），当前房间 `2px #e0a34f` + `rgba(224,163,79,.12)`，走动目标虚线；
+- 点房间 → `POST /anima/api/runtime/event {type:'move-to'}`，**3 分钟后才到**（`presence.moving` 期间文案是「正在去 阳台 的路上」）；快捷「晚安 / 早安 / 现在破例 30 分钟」；
+- 每 30 秒重取 `GET /anima/api/runtime`；心情标签用后端算好的 `moodLabel`（`runtime.mood` 里没有 label 字段，标签只能后端算）。
+免费模型写这一段时的两个错：`cells.push(h("div", {...}, NAME[id] + (isCurrent ? " ·" : ""));` 少一个右括号（`node --check` 报 `lib/client.js:330 SyntaxError: missing ) after argument list`）；`useMemo` 写在 `if (!data) return` 之后（违反 Hooks 顺序，已改成普通对象）。
+验收：新增 `scripts/test-home-branch.mjs`（4 组，把组件源码抽出来用假 hooks 渲染：七个房间都可点、当前房间带 `·`、走动文案、空位置/静默门不出现悬空逗号、后端没给房间时保留 7 个占位格）；`scripts/smoke.mjs` 断言分支表变成 `['home','memory','qq','bili','meme']` 且 client 源码含 `function HomeBranch(` 与 `current.id === 'home'` → **32/32 pass**；tarball 重打后解包确认 `HomeBranch` 在场、client id 仍是 `dsh-onesoul`。
 
 ## 8. 尚未完成
 

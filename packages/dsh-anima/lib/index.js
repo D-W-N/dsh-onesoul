@@ -35,8 +35,8 @@ import {
   renderEphemeralSection,
 } from './ephemeral.js'
 import { applyRuntimeEvent, normalizeRuntime, runtimePath, summarizeRuntime } from './runtime.js'
-import { describePresence, roomById } from './presence.js'
-import { describeMood } from './mood.js'
+import { ROOMS, describePresence, roomById } from './presence.js'
+import { describeMood, valenceLabel } from './mood.js'
 
 export { KEEP_DAYS, readEphemeralSync, refreshEphemeral, queryEphemeral, renderEphemeralSection, ephemeralSummary }
 export const name = 'dsh-anima'
@@ -158,6 +158,36 @@ export function apply(ctx, pluginConfig) {
   }
 
   // 停留/破例时长：给了就取合法分钟数，超过一天按一天算，其它（NaN、负数、空）一律当作没给
+  // 控制中心发来的事件：点房间 = move-to，晚安/早安/破例 = quiet，顺手说一句 = message
+  function normalizeUiEvent(body) {
+    const type = String((body && body.type) || '')
+    if (type === 'move-to') {
+      const room = String((body && body.room) || '').trim()
+      if (!roomById(room)) throw new Error('没有这个房间：' + room)
+      return {
+        type: 'move-to',
+        room: room,
+        activity: typeof body.activity === 'string' ? body.activity.slice(0, 80) : undefined,
+        minutes: minutesOfStay(body.minutes),
+      }
+    }
+    if (type === 'goodnight' || type === 'goodmorning' || type === 'override' || type === 'suppressed') {
+      return {
+        type: type,
+        minutes: minutesOfStay(body.minutes),
+        text: typeof body.text === 'string' ? body.text.slice(0, 500) : undefined,
+        kind: typeof body.kind === 'string' ? body.kind.slice(0, 40) : undefined,
+      }
+    }
+    if (type === 'tick') return { type: 'tick' }
+    if (type === 'message') {
+      const text = String((body && body.text) || '').trim()
+      if (!text) throw new Error('text 不能为空')
+      return { type: 'message', text: text.slice(0, 2000) }
+    }
+    throw new Error('不支持的事件类型：' + type)
+  }
+
   function minutesOfStay(value) {
     const n = Number(value)
     if (!Number.isFinite(n) || n <= 0) return undefined
@@ -732,6 +762,28 @@ export function apply(ctx, pluginConfig) {
               refreshSync()
               return sendJson(res, 200, { ok: true, data: summarize().effective })
             }
+            if (req.method === 'GET' && pathname === '/runtime') {
+              refreshSync()
+              return sendJson(res, 200, {
+                ok: true,
+                data: {
+                  summary: summarizeRuntime(state.runtime, nowIso()),
+                  runtime: state.runtime,
+                  rooms: ROOMS,
+                  moodLabel: valenceLabel(state.runtime.mood.valence),
+                },
+              })
+            }
+            if (req.method === 'POST' && pathname === '/runtime/event') {
+              const body = await readBody(req, 64 * 1024)
+              const result = await serialize(async function () {
+                refreshSync()
+                state.runtime = applyRuntimeEvent(state.runtime, normalizeUiEvent(body), nowIso())
+                await persistRuntime()
+                return { runtime: state.runtime, summary: summarizeRuntime(state.runtime, nowIso()) }
+              })
+              return sendJson(res, 200, { ok: true, data: result })
+            }
             if (req.method === 'POST' && pathname === '/decide') {
               const body = await readBody(req, 256 * 1024)
               const result = await serialize(async function () {
@@ -826,6 +878,21 @@ export function apply(ctx, pluginConfig) {
   refreshEphemeralSafe('startup')
   const ephemeralTimer = setInterval(function () { refreshEphemeralSafe('tick') }, 15 * 60 * 1000)
   if (typeof ephemeralTimer.unref === 'function') ephemeralTimer.unref()
+
+  // 她自己会走动：每 60 秒推一次 tick，只有位置/心情真的变了才写盘（否则白写磁盘还触发别处重读）
+  const runtimeTimer = setInterval(function () {
+    serialize(async function () {
+      const before = JSON.stringify(state.runtime.presence) + JSON.stringify(state.runtime.mood) + JSON.stringify(state.runtime.quiet)
+      const next = applyRuntimeEvent(state.runtime, { type: 'tick' }, nowIso())
+      const after = JSON.stringify(next.presence) + JSON.stringify(next.mood) + JSON.stringify(next.quiet)
+      if (after === before) return
+      state.runtime = next
+      await persistRuntime()
+    }).catch(function (error) {
+      ctx.logger && ctx.logger.warn && ctx.logger.warn('dsh-anima: 运行时 tick 失败 ' + (error && error.message ? error.message : error))
+    })
+  }, 60 * 1000)
+  if (typeof runtimeTimer.unref === 'function') runtimeTimer.unref()
 
   return { DEFAULT_PERSONA, defaultPersona: DEFAULT_PERSONA }
 }

@@ -358,8 +358,11 @@ test('dashboard: 聚合状态读得到 anima 与安装情况', async function ()
   assert.equal(result.status, 200)
   assert.equal(result.json.ok, true)
   const data = result.json.data
-  assert.equal(data.branches.length, 4)
-  assert.deepEqual(data.branches.map(function (item) { return item.id }), ['memory', 'qq', 'bili', 'meme'])
+  assert.equal(data.branches.length, 5)
+  assert.deepEqual(data.branches.map(function (item) { return item.id }), ['home', 'memory', 'qq', 'bili', 'meme'])
+  const homeBranch = data.branches[0]
+  assert.equal(homeBranch.native, true, '家分支是原生分支')
+  assert.equal(homeBranch.ready, true, 'anima 装了家分支就可用')
   assert.equal(data.services.anima.installed, true)
   assert.deepEqual(data.services.anima.profiles, ['web'])
   assert.equal(data.services.meme.installed, true)
@@ -443,6 +446,9 @@ test('dashboard 浏览器半: 注册控制中心 Tab', async function () {
   }
   await import('file:///' + join(process.cwd(), 'packages', 'dsh-companion-dashboard', 'lib', 'client.js').replace(/\\/g, '/') + '?t=' + Date.now())
   assert.ok(loaded, 'client.js 必须以 __ModuleLoader__.load 自注册')
+  const clientSource = readFileSync(join(process.cwd(), 'packages', 'dsh-companion-dashboard', 'lib', 'client.js'), 'utf8')
+  assert.ok(clientSource.includes('function HomeBranch('), '家分支组件必须在场')
+  assert.ok(clientSource.includes("current.id === 'home'"), '家分支必须挂进分支路由')
   assert.equal(loaded.id, 'dsh-companion-dashboard', 'loader id 必须等于插件包名')
   const exportsObj = loaded.factory(function (name) {
     if (name === 'react') return fakeReact
@@ -1106,4 +1112,40 @@ test('runtime 接线：非法输入挡在门外，写盘失败不回卡死', asy
   const until = Date.parse(after.quiet.overrideUntil)
   assert.ok(Number.isFinite(until), '负数分钟不得写出 Invalid Date')
   assert.ok(until - Date.now() <= 24 * 3600 * 1000, '破例时长上限一天')
+})
+
+test('anima: /runtime 路由（控制中心读她此刻状态、点房间让她过去）', async function () {
+  const env = makeCtx()
+  anima.apply(env.ctx, {})
+  const got = await callHandler(env.routes, '/anima/api', '/runtime')
+  assert.equal(got.status, 200)
+  assert.equal(got.json.ok, true)
+  assert.ok(got.json.data.summary.includes('## 此刻的状态'))
+  assert.equal(got.json.data.rooms.length, 7, '七个房间都要给前端')
+  assert.ok(got.json.data.rooms.some(function (r) { return r.id === 'study' && r.name === '书房' }))
+
+  // 换个房间不是瞬移：她走过去要 3 分钟（MOVE_MINUTES），期间位置卡显示「在路上」
+  const moved = await callHandler(env.routes, '/anima/api', '/runtime/event', { method: 'POST', body: { type: 'move-to', room: 'balcony', activity: '晒太阳' } })
+  assert.equal(moved.status, 200)
+  assert.equal(moved.json.data.runtime.presence.room, 'study', '刚出发时还在原地')
+  assert.equal(moved.json.data.runtime.presence.moving.to, 'balcony')
+  assert.match(moved.json.data.summary, /路上/, '摘要要如实说她正在走过去')
+
+  const tick = await callHandler(env.routes, '/anima/api', '/runtime/event', { method: 'POST', body: { type: 'tick' } })
+  assert.equal(tick.status, 200, 'tick 必须能被显式推一次（定时器每 60 秒做的同一件事）')
+
+  const bad = await callHandler(env.routes, '/anima/api', '/runtime/event', { method: 'POST', body: { type: 'move-to', room: '月球' } })
+  assert.equal(bad.status, 400)
+  assert.match(bad.json.error, /没有这个房间/)
+
+  const unknown = await callHandler(env.routes, '/anima/api', '/runtime/event', { method: 'POST', body: { type: 'dance' } })
+  assert.equal(unknown.status, 400)
+
+  const night = await callHandler(env.routes, '/anima/api', '/runtime/event', { method: 'POST', body: { type: 'goodnight' } })
+  assert.ok(night.json.data.summary.includes('静默中'))
+
+  const onDisk = JSON.parse(readFileSync(join(home, 'anima', 'runtime.json'), 'utf8'))
+  assert.ok(onDisk.presence.room === 'study' || onDisk.presence.room === 'balcony', '她的位置要真的落到 runtime.json')
+  assert.ok(onDisk.presence.moving === null || onDisk.presence.moving.to === 'balcony', '走动中/已到达只能是去阳台')
+  assert.equal(onDisk.quiet.state, 'quiet')
 })
