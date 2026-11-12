@@ -1,5 +1,16 @@
 # 阶段总结 · dsh-onesoul（Companion Bundle）
 
+**2026-11-12：发布前排雷（0.2.6，本地已装桌面 profile，未发 npm）** —— 全量过了一遍 anima + dashboard + 新增的嗓子/耳朵代码，修掉 8 处：
+1. `xiaomi.deviceList` 加 60s 缓存 —— 耳朵每 3 秒轮询都先打一遍小米 device_list，是触发风控的姿势（NapCat 前车之鉴）。
+2. 耳朵自动开启挪进 `mountAnimaRoutes`（只有挂上 webServer 路由的进程开）—— 否则值班 headless 进程升级后与桌面进程双开耳朵：同一条提问喂两遍、双份接话。
+3. `voice/` 目录自洁：`say-*` 音频留最近 30 个，文件名加随机尾防同秒互相覆盖。
+4. `POST /model-chain` 重排/删条目时保留各行 `reasoningEffort`（以前整体重发会把强度洗掉），并补 `.catch`——目录构建一抛此前会让请求永远不回、按钮卡「保存中…」。
+5. `writeJson` 的 tmp 名加随机尾（同进程并发写共用 pid 名会踩坏对方 tmp）；`pushRecentChat` 的 fire-and-forget 补 `.catch`。
+6. `relaunchHost` 清 `ELECTRON_RUN_AS_NODE` / `CHROME_CRASHPAD_PIPE_NAME` 再 `start` 宿主 exe——原样继承环境重新拉起的是 CLI 而不是桌面 app。
+7. `installedMap` 认单包：profile 只装 `dsh-onesoul` 时各通道算装齐（此前 npm 用户会看到所有服务灰着）。
+8. UI 死代码清理：`HomeBranch`（房间卡被 ConsoleView 取代）、`HubView`（无入口且引用不存在的 `.cmp-cgrid`）、`FreeChainCard`+`comboProvider`+`readFreeChains`（被 ChainCard 取代）、5 条 `.cmp-chatpage` 死 CSS。
+仓库卫生：`pip-*` / `.napcat-tmp/` 进 .gitignore 并删除残留目录。
+
 **2026-11-01 夜：对外发布形态已改为单包 `dsh-onesoul@0.1.2`** —— npm https://www.npmjs.com/package/dsh-onesoul 、GitHub https://github.com/D-W-N/dsh-onesoul （tag `v0.1.0`，SSH over 443 推送）。anima 与 dashboard 的 lib 内置在包内 `plugins/`，第三方 7 包仍是 dependencies；本机两个 profile 仍用本地 `dsh-companion-bundle` 形态运行，未切换到 npm 单包。发布流程与凭证见 `docs/PUBLISH.md` 顶部。
 
 **2026-11-01 深夜：本机 desktop / web 两个 profile 已切到单包** —— 依赖里删掉 dsh-anima 与 dsh-companion-dashboard，改成 `dsh-onesoul: ^0.1.2`（bundles 里 7 个第三方 bundle 摘掉，行改由 onesoul 的 patch 唯一插入，id 一律抄各包 canonical：`better-sidebar` / `dsh-expression` / `bili-pond`）。node_modules 是直接铺进磁盘的（没跑 pnpm install），**要重启桌面应用才生效**；回滚备份在 `E:/dsh-onesoul/.verify/backup-switch/{desktop,web}/`。详见 VERIFICATION §7.39。

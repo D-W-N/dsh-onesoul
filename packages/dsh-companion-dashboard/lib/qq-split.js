@@ -84,11 +84,14 @@ export async function sendText(chatId, text) {
 export async function sendOneMessage(chatId, text) {
   if (!captured) throw new Error('还没有捕获到出站管道：先让机器人收到任意一条 QQ 消息')
   const target = originalSendToChat || captured.sendToChat
+  // 主动推送最容易被判成机器人：发之前也按正态分布停顿一下
+  await sleep(beforeFirstMs())
   return target.call(captured, String(chatId), String(text), {})
 }
 export const MAX_CHUNK = 180
 export const MAX_MESSAGES = 12
 const GAP_MS = 350
+
 
 /** 只有这些才算句末。省略号（…）刻意不在里面 —— 它大多出现在句子中间，
  *  按它切会把「那 mi 八成是……米？」切成「…」「米？」两条（2026-11-01 真机实测）。 */
@@ -259,6 +262,34 @@ export function splitBySentence(text, max = MAX_CHUNK) {
 }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+/**
+ * 反检测抖动：真人打字的间隔不是固定值，固定 GAP 反而是机器指纹。
+ * 用正态分布（Box-Muller）造间隔，均值默认 0.5s、σ=0.3s，夹在 [120, 2500]ms。
+ * 依据：2026-11-08 用户反馈的社区经验 —— 一天掉线 6 次，改成均值 0.5s 的随机间隔
+ * 之后三天未掉线（含两次关机重启）。可用 QQ_SPLIT_JITTER_MEAN 覆盖均值。
+ */
+const JITTER_MEAN_MS = (function () {
+  const n = Number(process.env && process.env.QQ_SPLIT_JITTER_MEAN)
+  return Number.isFinite(n) && n >= 0 ? n : 500
+})()
+const JITTER_SIGMA_MS = Math.round(JITTER_MEAN_MS * 0.6)
+
+function gaussMs(mean, sigma) {
+  if (!(mean > 0)) return 0
+  let u = 0
+  let v = 0
+  while (u === 0) u = Math.random()
+  while (v === 0) v = Math.random()
+  const z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+  const ms = Math.round(mean + z * sigma)
+  return Math.min(2500, Math.max(120, ms))
+}
+
+/** 第一条之前的「读到消息、想一下、动手打」的停顿。 */
+const beforeFirstMs = () => gaussMs(JITTER_MEAN_MS, JITTER_SIGMA_MS)
+/** 条与条之间的停顿：以 GAP_MS 为下限，再叠一层正态抖动。 */
+const betweenMs = () => Math.max(GAP_MS, gaussMs(JITTER_MEAN_MS, JITTER_SIGMA_MS))
+
 const RETRY_MS = 800
 const SEND_TRIES = 3
 const TAIL_OK = /[。！？!?…%）)】」』”"'~～\]]$/
@@ -321,13 +352,15 @@ export async function installQqSplit() {
     if (chunks.length === 0) return original.call(this, chatId, text, options)
     if (looksUnfinished(body)) chunks[chunks.length - 1] = chunks[chunks.length - 1] + '\n' + UNFINISHED_NOTE
     if (chunks.length <= 1) {
+      await sleep(beforeFirstMs())
       const single = await original.call(this, chatId, chunks[0], options)
       if (memeIds.length === 0) return single
       return Array.isArray(single) ? memeIds.concat(single) : memeIds.concat([single])
     }
     const ids = []
     for (let i = 0; i < chunks.length; i += 1) {
-      if (i > 0) await sleep(GAP_MS)
+      if (i > 0) await sleep(betweenMs())
+      else await sleep(beforeFirstMs())
       let sent = null
       let lastError = null
       for (let tries = 0; tries < SEND_TRIES && sent === null; tries += 1) {

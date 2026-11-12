@@ -17,6 +17,7 @@ import { installMediaRoots, extraMediaRoots, mediaRootsStatus } from './media-ro
 import { memeInlineStatus } from './meme-inline.js'
 import { installChatModel, chatModelStatus, retargetLiveChats } from './chat-model.js'
 import { applyPondGate, pondGateStatus, pondDir as pondGateDir, ALL_DAYS as POND_ALL_DAYS } from './pond-gate.js'
+import { resolveQrFile, renderQrFromLog } from './qq-qr.js'
 
 export const name = 'dsh-companion-dashboard'
 export const inject = ['webServer']
@@ -129,11 +130,26 @@ function napcatQrFile() {
   candidates.push(join(keeperDir, 'qr.png'))
   if (typeof config.shellDir === 'string' && config.shellDir.trim()) {
     candidates.push(join(config.shellDir, 'napcat', 'cache', 'qrcode.png'))
+    // 本机实测的真实落点：<shellDir>/NapCat.Shell.Windows.Node/napcat/cache/qrcode.png
+    candidates.push(join(config.shellDir, 'NapCat.Shell.Windows.Node', 'napcat', 'cache', 'qrcode.png'))
   }
-  for (const file of candidates) {
-    if (existsSync(file)) return file
+  // 缓存文件不新鲜（NapCat 有时根本不写）就从启动日志的字符画现渲染一份
+  const picked = resolveQrFile(candidates, keeperDir)
+  return picked && picked.file ? picked.file : ''
+}
+
+/** 二维码 PNG 字节：优先现成文件，没有就现场把启动日志的字符画渲染成图。 */
+function napcatQrBytes() {
+  const file = napcatQrFile()
+  if (file) {
+    try {
+      return { buf: readFileSync(file), file }
+    } catch {}
   }
-  return ''
+  const log = join(dshHome(), 'dsh-napcat-keeper', 'launch.log')
+  const rendered = renderQrFromLog(log)
+  if (rendered) return { buf: rendered.png, file: '', rendered: true }
+  return null
 }
 
 /**
@@ -322,9 +338,13 @@ function installedMap() {
     const manifest = safeJson(join(profilesDir, profile, 'package.json'), null)
     if (!manifest) continue
     const deps = { ...(manifest.dependencies || {}), ...(manifest.devDependencies || {}) }
+    // 单包形态：profile 里只有 dsh-onesoul 时，anima/dashboard 内置在包里、
+    // 第三方 7 包是它的 dependencies —— 装了单包 = 每个通道都在。
+    // （以前只认显式行名，npm 用户装完单包会看到所有服务灰着。）
+    const viaOnesoul = !!deps['dsh-onesoul']
     for (const key of Object.keys(KNOWN)) {
       for (const pkg of KNOWN[key]) {
-        if (deps[pkg]) {
+        if (deps[pkg] || viaOnesoul) {
           const entry = result[key]
           entry.installed = true
           if (entry.packages.indexOf(pkg) < 0) entry.packages.push(pkg)
@@ -423,6 +443,118 @@ function readJsonBody(req, limit) {
     req.on('error', function () { finish(null) })
   })
 }
+
+// 模型优先顺序（失败自动切下一条用）与宿主重启
+function modelChainPath() {
+  return join(dshHome(), 'anima', 'model-chain.json')
+}
+
+function readModelChain() {
+  const raw = safeJson(modelChainPath(), null)
+  const src = raw && typeof raw === 'object' ? raw : {}
+  const chain = Array.isArray(src.chain) ? src.chain.filter(function (item) {
+    return item && typeof item.provider === 'string' && typeof item.model === 'string'
+  }).map(function (item) {
+    return { provider: item.provider, model: item.model, ...(item.reasoningEffort ? { reasoningEffort: item.reasoningEffort } : {}) }
+  }) : []
+  const onFail = src.onFail && typeof src.onFail === 'object' ? src.onFail : {}
+  return {
+    chain: chain,
+    onFail: { advance: onFail.advance !== false, restart: onFail.restart !== false },
+    lastFailAt: typeof src.lastFailAt === 'string' ? src.lastFailAt : '',
+    lastFailNote: typeof src.lastFailNote === 'string' ? src.lastFailNote : '',
+  }
+}
+
+function writeModelChain(next) {
+  const dir = join(dshHome(), 'anima')
+  try { mkdirSync(dir, { recursive: true }) } catch {}
+  writeFileSync(modelChainPath(), JSON.stringify(next, null, 2), 'utf8')
+}
+
+function relaunchHost() {
+  const exe = process.execPath
+  const pid = process.pid
+  const lines = [
+    'timeout /t 3 /nobreak >nul',
+    'taskkill /F /PID ' + pid + ' >nul 2>&1',
+    'timeout /t 2 /nobreak >nul',
+    'start "" "' + exe + '"',
+  ].join(' & ')
+  // 宿主子进程环境里带 ELECTRON_RUN_AS_NODE=1 和 CHROME_CRASHPAD_PIPE_NAME，
+  // 原样继承给 start 拉起的 exe，重新打开的就是个 CLI 而不是桌面 app。
+  const env = { ...process.env }
+  delete env.ELECTRON_RUN_AS_NODE
+  delete env.CHROME_CRASHPAD_PIPE_NAME
+  const child = spawn('cmd.exe', ['/c', lines], { detached: true, stdio: 'ignore', windowsHide: true, env: env })
+  if (child && typeof child.unref === 'function') child.unref()
+  return { exe: exe, pid: pid }
+}
+
+// 失败自动切换：订阅 session/event 的 turn/end，reason.kind === 'error' 时沿链下移一格。
+// 只在 onFail.advance 打开、且离上次失败超过 3 分钟才动手，避免连环切换把链一条条跑空。
+const FAIL_COOLDOWN_MS = 180000
+
+function nextChainStep(chain, current) {
+  if (!chain.chain.length) return null
+  const idx = chain.chain.findIndex(function (item) {
+    return item.provider === current.provider && item.model === current.model
+  })
+  if (idx < 0) return chain.chain[0]
+  return idx + 1 < chain.chain.length ? chain.chain[idx + 1] : null
+}
+
+async function switchDefaultSelection(ctx, next) {
+  const defaultModel = typeof ctx.get === 'function' ? ctx.get('agentDefaultModel') : null
+  if (!defaultModel || typeof defaultModel.saveSelection !== 'function') throw new Error('agentDefaultModel-unavailable')
+  await defaultModel.saveSelection(next)
+  const hotSwitch = await hotSwitchLiveAgents(ctx, next)
+  const chatSwitch = retargetLiveChats(currentBridge(), next)
+  return { hotSwitch: hotSwitch, chatSwitch: chatSwitch }
+}
+
+async function advanceOnFailure(ctx, event) {
+  const kind = event && event.data && event.data.reason ? event.data.reason.kind : ''
+  if (kind !== 'error') return
+  const chain = readModelChain()
+  if (!chain.onFail.advance) return
+  if (chain.lastFailAt) {
+    const age = Date.now() - Date.parse(chain.lastFailAt)
+    if (Number.isFinite(age) && age >= 0 && age < FAIL_COOLDOWN_MS) return
+  }
+  const defaultModel = typeof ctx.get === 'function' ? ctx.get('agentDefaultModel') : null
+  const current = defaultModel && typeof defaultModel.currentSelection === 'function'
+    ? defaultModel.currentSelection()
+    : null
+  if (!current || !current.provider || !current.model) return
+  const next = nextChainStep(chain, current)
+  const stamp = new Date().toISOString()
+  if (!next) {
+    writeModelChain({ ...chain, lastFailAt: stamp, lastFailNote: current.provider + ' / ' + current.model + ' 报错，但已在链尾，没有可切的下一条' })
+    if (ctx.logger && ctx.logger.warn) ctx.logger.warn('dsh-onesoul: 模型报错，链尾无可切项')
+    return
+  }
+  const note = current.provider + ' / ' + current.model + ' 报错 → 切到 ' + next.provider + ' / ' + next.model
+  try {
+    const switched = await switchDefaultSelection(ctx, next)
+    writeModelChain({
+      ...chain,
+      lastFailAt: stamp,
+      lastFailNote: note + (switched.hotSwitch ? '' : '（热切换未生效，可能要重启）'),
+    })
+    if (ctx.logger && ctx.logger.warn) ctx.logger.warn('dsh-onesoul: ' + note)
+  } catch (error) {
+    writeModelChain({ ...chain, lastFailAt: stamp, lastFailNote: note + ' 失败：' + String((error && error.message) || error) })
+    return
+  }
+  if (chain.onFail.restart) {
+    const timer = setTimeout(function () {
+      try { relaunchHost() } catch {}
+    }, 1500)
+    if (timer && typeof timer.unref === 'function') timer.unref()
+  }
+}
+
 
 // 模型目录：只读 llm 注册表 + agentDefaultModel 的当前选择；都拿不到就退化，不抛错。
 async function buildModelCatalog(ctx) {
@@ -905,6 +1037,16 @@ export function apply(ctx, pluginConfig) {
     return disposeLiveSelections
   })
 
+  // P4b：回合以 error 收尾时沿模型链下移一格（可选自动重启）。总线拿不到就静默退化。
+  ctx.effect(function () {
+    if (typeof ctx.on !== 'function') return function () {}
+    return ctx.on('session/event', function (session, event) {
+      advanceOnFailure(ctx, event).catch(function (error) {
+        if (ctx.logger && ctx.logger.warn) ctx.logger.warn('dsh-onesoul: 失败切换出错 ' + String((error && error.message) || error))
+      })
+    })
+  })
+
   ctx.effect(function () {
     return webServer.register({
       kind: 'prefix',
@@ -940,10 +1082,10 @@ export function apply(ctx, pluginConfig) {
         }
         if (req.method === 'GET' && pathname === '/napcat/qr') {
           // 二维码原样透传：浏览器半只认 URL，不碰宿主文件系统
-          const file = napcatQrFile()
-          if (!file) return sendJson(res, 404, { ok: false, error: 'no-qr' })
+          const got = napcatQrBytes()
+          if (!got) return sendJson(res, 404, { ok: false, error: 'no-qr' })
           try {
-            const buf = readFileSync(file)
+            const buf = got.buf
             res.writeHead(200, {
               'Content-Type': 'image/png',
               'Cache-Control': 'no-store',
@@ -1031,6 +1173,57 @@ export function apply(ctx, pluginConfig) {
             .catch(function (error) {
               sendJson(res, 500, { ok: false, error: String((error && error.message) || error) })
             })
+        }
+        if (req.method === 'GET' && pathname === '/model-chain') {
+          const chain = readModelChain()
+          return buildModelCatalog(ctx).then(function (catalog) {
+            sendJson(res, 200, { ok: true, data: { ...chain, current: catalog.current, canSave: catalog.canSave } })
+          }).catch(function (error) {
+            sendJson(res, 200, { ok: true, data: { ...chain, current: null, canSave: false, warn: String((error && error.message) || error) } })
+          })
+        }
+        if (req.method === 'POST' && pathname === '/model-chain') {
+          return readJsonBody(req).then(function (body) {
+            if (!body || typeof body !== 'object') return sendJson(res, 400, { ok: false, error: 'bad-json' })
+            const prev = readModelChain()
+            return buildModelCatalog(ctx).then(function (catalog) {
+              const wanted = Array.isArray(body.chain) ? body.chain : []
+              const chain = []
+              for (const item of wanted) {
+                if (!item || typeof item.provider !== 'string' || typeof item.model !== 'string') continue
+                const provider = item.provider.trim()
+                const model = item.model.trim()
+                if (!provider || !model) continue
+                if (!findModel(catalog.groups, provider, model)) {
+                  return sendJson(res, 404, { ok: false, error: 'unknown-model', provider: provider, model: model })
+                }
+                if (chain.some(function (hit) { return hit.provider === provider && hit.model === model })) continue
+                // 重排/删条目时整体重发的是现有行：别把它们的推理强度洗掉
+                const kept = prev.chain.filter(function (hit) { return hit.provider === provider && hit.model === model })[0]
+                chain.push(kept && kept.reasoningEffort ? { provider: provider, model: model, reasoningEffort: kept.reasoningEffort } : { provider: provider, model: model })
+              }
+              const onFail = body.onFail && typeof body.onFail === 'object' ? body.onFail : prev.onFail
+              writeModelChain({
+                chain: chain,
+                onFail: { advance: onFail.advance !== false, restart: onFail.restart !== false },
+                lastFailAt: prev.lastFailAt,
+                lastFailNote: prev.lastFailNote,
+              })
+              sendJson(res, 200, { ok: true, data: readModelChain() })
+            })
+          }).catch(function (error) {
+            // 没有 catch 时目录构建一抛，这个请求就永远不回（面板按钮卡在「保存中…」）
+            sendJson(res, 500, { ok: false, error: String((error && error.message) || error) })
+          })
+        }
+        if (req.method === 'POST' && pathname === '/restart') {
+          return readJsonBody(req).then(function (body) {
+            const info = relaunchHost()
+            sendJson(res, 200, { ok: true, data: { ...info, delayMs: 3000, note: '3 秒后杀掉宿主并重新拉起' } })
+            if (ctx.logger && ctx.logger.warn) ctx.logger.warn('dsh-onesoul: 收到重启请求，3 秒后重启（' + (body && body.reason ? body.reason : 'manual') + '）')
+          }).catch(function (error) {
+            sendJson(res, 500, { ok: false, error: String((error && error.message) || error) })
+          })
         }
         if (req.method === 'POST' && pathname === '/model') {
           // 切换默认模型：写的是 agentDefaultModel 的配置行（configEditor 会落进 profile patch）

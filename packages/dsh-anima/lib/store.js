@@ -64,7 +64,8 @@ export function stampOf(path) {
 /** Write JSON atomically: tmp file in the same directory, then rename. */
 export async function writeJson(path, value) {
   await mkdir(animaDir(), { recursive: true })
-  const tmp = path + '.' + process.pid + '.tmp'
+  // tmp 名必须每次唯一：同进程两个并发写共用 pid 名会互相踩坏 tmp 再一起 rename
+  const tmp = path + '.' + process.pid + '.' + randomUUID().slice(0, 8) + '.tmp'
   await writeFile(tmp, JSON.stringify(value, null, 2) + '\n', 'utf8')
   await rename(tmp, path)
 }

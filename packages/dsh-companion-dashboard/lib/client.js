@@ -36,26 +36,31 @@ window.__ModuleLoader__.load({
 
     // ---- 样式：一次性注入，类名统一 cmp- 前缀 ----
     const CSS = [
-      '.cmp-panel{display:flex;flex-direction:column;height:100%;min-height:0;font-size:13px;color:var(--dsw-alias-label-primary)}',
-      '.cmp-nav{display:flex;gap:6px;padding:10px 12px 8px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap}',
-      '.cmp-nav button{cursor:pointer;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:inherit;border-radius:999px;padding:4px 12px;font-size:12px}',
-      '.cmp-nav button.on{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:#fff}',
-      '.cmp-body{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:12px}',
-      '.cmp-card{border:1px solid var(--dsw-alias-border-l1);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-layer-1)}',
-      '.cmp-card h4{margin:0 0 8px;font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary);letter-spacing:.04em;text-transform:uppercase}',
+      '.cmp-panel{display:flex;flex-direction:column;height:100%;min-height:0;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-base)}',
+      '.cmp-nav{display:flex;gap:20px;padding:0 16px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap}',
+      '.cmp-nav button{cursor:pointer;border:0;background:transparent;color:var(--dsw-alias-label-secondary);padding:10px 0;font-size:13px;line-height:1.4;border-bottom:2px solid transparent;margin-bottom:-1px}',
+      '.cmp-nav button:hover{color:var(--dsw-alias-label-primary)}',
+      '.cmp-nav button.on{color:var(--dsw-alias-label-primary);font-weight:600;border-bottom-color:var(--dsw-alias-brand-primary)}',
+      '.cmp-body{flex:1;min-height:0;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:12px;margin:0 14px 14px;border-radius:12px;border:1px solid var(--c-line);background:linear-gradient(180deg,var(--c-card-a),var(--c-card-b));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.06)}',
+      '.cmp-card{border:1px solid var(--c-line);border-radius:10px;padding:13px 15px;background:rgba(255,255,255,.03)}',
+      '.cmp-card-title{margin:0 0 10px;font-size:14px;font-weight:600;line-height:1.4;color:var(--dsw-alias-label-primary)}',
       '.cmp-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}',
+      '.cmp-stack{display:flex;flex-direction:column;gap:6px;min-width:0}',
+      '.cmp-row .cmp-input{width:auto;flex:1 1 160px}',
       '.cmp-muted{color:var(--dsw-alias-label-secondary);font-size:12px}',
       '.cmp-item{border-top:1px solid var(--dsw-alias-border-l1);padding:8px 0;display:flex;flex-direction:column;gap:6px}',
       '.cmp-item:first-of-type{border-top:none}',
       '.cmp-text{white-space:pre-wrap;line-height:1.5}',
-      '.cmp-btn{cursor:pointer;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:inherit;border-radius:6px;padding:3px 10px;font-size:12px}',
+      '.cmp-btn{cursor:pointer;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:inherit;border-radius:6px;padding:4px 12px;font-size:12px}',
+      '.cmp-btn:not(.primary):not(.danger):hover{background:var(--dsw-alias-interactive-bg-hover)}',
       '.cmp-btn.primary{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:#fff}',
-      '.cmp-btn.danger{color:#d9534f;border-color:#d9534f}',
+      '.cmp-btn.danger{color:var(--dsw-alias-state-error-primary);border-color:currentColor}',
       '.cmp-btn:disabled{opacity:.45;cursor:default}',
-      '.cmp-input,.cmp-area{width:100%;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;padding:6px 8px;background:var(--dsw-alias-bg-layer-2);color:inherit;font:inherit}',
+      '.cmp-input,.cmp-area{width:100%;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;padding:6px 8px;background:var(--dsw-alias-bg-layer-1);color:inherit;font:inherit}',
+      '.cmp-input:focus,.cmp-area:focus{outline:none;border-color:var(--dsw-alias-brand-primary)}',
       '.cmp-grid{display:grid;grid-template-columns:64px 1fr;gap:6px 8px;align-items:center}',
 '.cmp-picker{max-height:232px;overflow:auto;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:4px;margin:6px 0 10px}',
-      '.cmp-pickgroup{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--dsw-alias-label-secondary);padding:6px 8px 2px}',
+      '.cmp-pickgroup{font-size:12px;color:var(--dsw-alias-label-secondary);padding:6px 8px 2px}',
 '.cmp-pick{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1.35}',
 '.cmp-pick:hover{background:var(--dsw-alias-bg-layer-2)}',
 '.cmp-pick.on{background:var(--dsw-alias-brand-primary);color:#fff}',
@@ -65,20 +70,124 @@ window.__ModuleLoader__.load({
 '.cmp-pick-label{flex:1 1 auto;word-break:break-all}',
       '.cmp-note{border-left:2px solid var(--dsw-alias-brand-primary);padding-left:8px;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}',
       '.cmp-badge{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;border:1px solid var(--dsw-alias-border-l1)}',
-      '.cmp-badge.ok{color:#2e9e5b;border-color:#2e9e5b}',
+      '.cmp-badge.ok{color:var(--dsw-alias-state-success-primary);border-color:currentColor}',
       '.cmp-badge.no{color:var(--dsw-alias-label-secondary)}',
       '.cmp-toast{font-size:12px;padding:6px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2)}',
       '.cmp-qrwrap{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin:8px 0}',
       '.cmp-qr{width:168px;height:168px;image-rendering:pixelated;background:#fff;border-radius:8px;padding:6px;box-sizing:border-box}',
-      '.cmp-lbl { font-size: 12px; color: var(--dsw-alias-text-secondary); margin: 0 0 4px; }',
+      '.cmp-lbl { font-size: 12px; color: var(--dsw-alias-label-secondary); margin: 0 0 4px; }',
   '.cmp-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }',
-  '.cmp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: var(--dsw-alias-bg-elevated); font-size: 12px; }',
-  '.cmp-chip-x { border: 0; background: transparent; cursor: pointer; color: var(--dsw-alias-text-secondary); font-size: 14px; line-height: 1; padding: 0; }',
-  '.cmp-check { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--dsw-alias-text-secondary); }',
-  '.cmp-num { width: 56px; }',
+  '.cmp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: var(--dsw-alias-bg-layer-2); font-size: 12px; }',
+  '.cmp-chip-x { border: 0; background: transparent; cursor: pointer; color: var(--dsw-alias-label-secondary); font-size: 14px; line-height: 1; padding: 0; }',
+  '.cmp-check { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--dsw-alias-label-secondary); }',
+  '.cmp-num { width: 56px; box-sizing: border-box; border: 1px solid var(--dsw-alias-border-l1); border-radius: 6px; padding: 6px 8px; background: var(--dsw-alias-bg-layer-1); color: inherit; font: inherit; font-size: 12px; }',
   '.cmp-day { border: 0; cursor: pointer; opacity: 0.45; }',
-  '.cmp-day.on { opacity: 1; outline: 1px solid var(--dsw-alias-border); }',
-  '.cmp-pool { width: 100%; box-sizing: border-box; font: inherit; font-size: 12px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--dsw-alias-border); background: var(--dsw-alias-bg-elevated); color: inherit; resize: vertical; }',
+  '.cmp-day.on { opacity: 1; outline: 1px solid var(--dsw-alias-border-l2); }',
+  '.cmp-pool { width: 100%; box-sizing: border-box; font: inherit; font-size: 12px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-layer-1); color: inherit; resize: vertical; }',
+  // ---- 总览台：暗色玻璃质感的卡片网格 ----
+  '.cmp-console{position:relative;isolation:isolate;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--c-bg);color:var(--c-text)}',
+  '.cmp-console.dark{--c-bg:linear-gradient(170deg,#0b0e13 0%,#080a0e 60%,#0a0d12 100%);--c-card-a:rgba(40,47,58,.44);--c-card-b:rgba(13,16,22,.56);--c-line:rgba(255,255,255,.09);--c-line-strong:rgba(255,255,255,.20);--c-text:#e7e9ec;--c-dim:#939daa;--c-kick:#7b8794;--c-accent:#dca765;--c-ok:#5fbf8a;--c-off:#5c666f;--c-hl:rgba(220,167,101,.16);--c-a1:rgba(224,168,98,.34);--c-a2:rgba(74,124,198,.30);--c-a3:rgba(130,94,182,.24)}',
+  '.cmp-console.light{--c-bg:linear-gradient(170deg,#f7f8fa 0%,#eef0f4 100%);--c-card-a:rgba(255,255,255,.74);--c-card-b:rgba(255,255,255,.58);--c-line:rgba(15,20,28,.10);--c-line-strong:rgba(15,20,28,.20);--c-text:#1b1f25;--c-dim:#69717b;--c-kick:#8d949d;--c-accent:#b5762c;--c-ok:#2f9e6a;--c-off:#a3aab2;--c-hl:rgba(181,118,44,.12);--c-a1:rgba(222,170,104,.34);--c-a2:rgba(98,150,210,.30);--c-a3:rgba(156,126,194,.22)}',
+  // 背景光晕：毛玻璃要有东西可糊，否则 backdrop-filter 看起来和没加一样
+  '.cmp-aura{position:absolute;inset:-18%;z-index:0;pointer-events:none;background:radial-gradient(34% 38% at 12% 4%,var(--c-a1) 0%,transparent 68%),radial-gradient(30% 34% at 88% 0%,var(--c-a2) 0%,transparent 70%),radial-gradient(26% 30% at 44% 52%,var(--c-a2) 0%,transparent 72%),radial-gradient(44% 44% at 72% 98%,var(--c-a3) 0%,transparent 74%),radial-gradient(30% 34% at 4% 88%,var(--c-a3) 0%,transparent 72%);filter:blur(46px) saturate(140%);animation:cmp-drift 28s ease-in-out infinite alternate}',
+  '@keyframes cmp-drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-2.5%,2%,0) scale(1.08)}}',
+  '@media (prefers-reduced-motion:reduce){.cmp-aura{animation:none}}',
+  '.cmp-console-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow:auto;padding:18px;display:flex;flex-direction:column}',
+  '.cmp-crows{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px;flex:0 0 auto}.cmp-crow{display:flex;gap:10px;align-items:stretch;min-width:0;min-height:260px}',
+  '.cmp-c.live{flex:1 1 100%}',
+  '',
+  '.cmp-c.ear{flex:2 1 60%}',
+  '',
+  '.cmp-c.chat{flex:2 1 60%}',
+  '@media (max-width:640px){.cmp-crow{flex-direction:column}.cmp-c,.cmp-c.ear,.cmp-c.chat,.cmp-c.live{flex:0 0 auto}}',
+  '@media (max-width:460px){.cmp-c{padding:12px}}',
+  '.cmp-c{min-width:0;flex:1 1 34%;min-height:230px;position:relative;border:1px solid var(--c-line);border-radius:12px;padding:11px 13px 10px;background:linear-gradient(180deg,var(--c-card-a),var(--c-card-b));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px;min-width:0;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}',
+  '.cmp-c:hover{transform:translateY(-1px);border-color:var(--c-line-strong);box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08)}',
+  '.cmp-c.wide{grid-column:1 / -1}',
+  // bento 咬合：LIVE 占 2 列 2 行（3x3 的主体），对话占 2 列，其余各 1 格 —— 9 格正好填满，不留洞
+  '.cmp-c::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.055;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27140%27 height=%27140%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.85%27 numOctaves=%272%27/%3E%3C/filter%3E%3Crect width=%27140%27 height=%27140%27 filter=%27url(%23n)%27/%3E%3C/svg%3E");background-size:140px 140px}',
+
+  '.cmp-compose{display:flex;gap:8px;align-items:center}.cmp-compose .cmp-input{flex:1;min-width:0}',
+  '.cmp-log.chatlog{flex:0 0 auto;height:calc(12 * 24px);min-height:0;overflow:auto;padding-right:4px}',
+  '.cmp-body.chatbody{flex:0 0 auto;max-height:calc(100vh - 140px)}',
+  '.cmp-log.chatlog>*:first-child{margin-top:0}',
+  '.cmp-log{display:flex;flex-direction:column;gap:0;flex:1;min-height:0;overflow:auto;padding-right:4px;margin-top:8px}.cmp-log>*:first-child{margin-top:auto}',
+  '.cmp-log .cmp-chat-row{display:flex;gap:12px;align-items:flex-start;padding:7px 2px;border-top:1px solid var(--c-line)}',
+  '.cmp-log .cmp-chat-row:first-child{border-top:none}',
+  '.cmp-log .cmp-chat-t{flex:0 0 48px;font-size:11.5px;padding-top:2px}',
+  '.cmp-log .cmp-chat-w{flex:0 0 58px;font-size:11.5px;padding-top:2px;color:var(--c-kick)}',
+  '.cmp-log .cmp-chat-b{flex:1;min-width:0;white-space:pre-wrap;word-break:break-word;font-size:12.5px;line-height:1.55;color:var(--c-text)}',
+  '.cmp-log .cmp-chat-row.her .cmp-chat-w{color:var(--c-accent)}',
+  '.cmp-log .cmp-chat-row.her .cmp-chat-b{color:var(--c-text)}',
+  '.cmp-c.wide{flex:1 1 100%;min-height:0}',
+  '.cmp-log .cmp-chat-row{padding:2.5px 0}',
+  '.cmp-c.cmp-go{cursor:pointer;text-align:left;font:inherit;color:inherit}',
+  '.cmp-c.cmp-go:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}',
+  '.cmp-scope{display:flex;gap:8px;margin-top:2px}',
+  '.cmp-scope button{flex:1 1 0;white-space:nowrap;border:1px solid var(--c-line);border-radius:9px;background:rgba(0,0,0,.14);color:var(--c-dim);font-size:11.5px;padding:7px 4px;cursor:pointer;font-family:inherit}',
+  '.cmp-scope button.on{border-color:var(--c-accent);color:var(--c-text);background:rgba(255,255,255,.06)}',
+  '.cmp-say-m:empty{display:none}',
+  '.cmp-rt{margin-top:auto;padding-top:11px;border-top:1px solid var(--c-line)}',
+  '.cmp-rlist{column-count:2;column-gap:14px;margin-top:6px}',
+  '.cmp-rrow{display:grid;grid-template-columns:92px 64px minmax(0,1fr);gap:8px;align-items:baseline;font-size:11px;color:var(--c-kick);padding:1px 5px;border-radius:6px;break-inside:avoid}',
+  '.cmp-rrow .t{font-variant-numeric:tabular-nums;opacity:.8}',
+  '.cmp-rrow .r{color:var(--c-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.cmp-rrow .a{font-size:11px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.cmp-rrow.cur{background:rgba(255,255,255,.07);box-shadow:inset 2px 0 0 var(--c-accent)}',
+  '.cmp-rrow.cur .r{color:var(--c-accent)}',
+  '.cmp-k{display:flex;justify-content:space-between;align-items:baseline;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--c-kick);font-weight:500}',
+  '.cmp-ct{font-size:13.5px;font-weight:500;line-height:1.35;color:var(--c-text);margin:0}',
+  '.cmp-h{font-size:11.5px;line-height:1.5;color:var(--c-dim);margin:0}',
+  '.cmp-h b{color:var(--c-text);font-weight:500}',
+  '.cmp-cf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:4px;font-size:10.5px;color:var(--c-kick)}',
+  '.cmp-cf>span{min-width:0}',
+  '.cmp-c .cmp-btn{white-space:nowrap}',
+  '.cmp-a{color:var(--c-accent);font-size:11.5px;text-decoration:none;cursor:pointer;white-space:nowrap}',
+  '.cmp-say{display:flex;gap:6px;align-items:center;margin-top:4px}',
+  '.cmp-say .cmp-input{flex:1;min-width:0;background:rgba(0,0,0,.16)}',
+  '.cmp-say-m{font-size:11.5px;color:var(--c-kick);margin:8px 0 0;min-height:1.2em}',
+  '.cmp-spk{display:flex;gap:8px;align-items:center;margin-top:8px}',
+  '.cmp-spk select{flex:1 1 auto;min-width:0;background:rgba(0,0,0,.16);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);padding:6px 8px;font-size:12.5px}',
+  '.cmp-spk .cmp-btn{flex:0 0 auto}',
+  '.cmp-ear{display:flex;gap:8px;align-items:center}',
+  '.cmp-ear .cmp-a{flex:1 1 auto;min-width:0}',
+  '.cmp-chat{display:flex;flex-direction:column;gap:7px;margin:10px 0 0}',
+  '.cmp-chat-row{display:flex;gap:8px;font-size:11.5px;line-height:1.35;align-items:baseline}',
+  '.cmp-chat-t{flex:0 0 38px;color:var(--c-kick);font-variant-numeric:tabular-nums;font-size:11px}',
+  '.cmp-chat-w{flex:0 0 auto;color:var(--c-kick);font-size:11px}',
+  '.cmp-chat-row.her .cmp-chat-w{color:var(--c-accent)}',
+  '.cmp-chat-b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--c-dim)}',
+  '.cmp-chat-row.her .cmp-chat-b{color:var(--c-text)}',
+  '.cmp-a:hover{text-decoration:underline}',
+  '.cmp-svc{display:flex;align-items:center;gap:6px;font-size:11px;padding:1px 0;color:var(--c-text);border-top:1px solid var(--c-line)}',
+  '.cmp-svc:first-child{border-top:none}',
+  '.cmp-svc .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.cmp-svc .st{font-size:10px;letter-spacing:.1em;color:var(--c-off);white-space:nowrap}',
+  '.cmp-svc.on .st{color:var(--c-ok)}',
+  '.cmp-dot{width:6px;height:6px;border-radius:50%;background:var(--c-off);flex:0 0 auto}',
+  '.cmp-svc.on .cmp-dot{background:var(--c-ok);box-shadow:0 0 6px var(--c-ok)}',
+  '.cmp-svc.jump{cursor:pointer;border:0;border-top:1px solid var(--c-line);background:none;font:inherit;width:100%;text-align:left;color:inherit;padding:2px 0}',
+  '.cmp-svc.jump:hover .n{color:var(--c-accent)}',
+  '.cmp-svc .go{font-size:11px;color:var(--c-accent);opacity:.8;margin-left:2px}',
+  '.cmp-svc.off .st{color:var(--c-off)}',
+  '.cmp-live{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:center;height:100%}',
+  '@media (max-width:760px){.cmp-live{grid-template-columns:1fr}}',
+  '.cmp-plan{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:78px 62px;gap:3px;padding:11px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid var(--c-line)}',
+  '.cmp-room{border:1px solid var(--c-line);border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:3px;cursor:pointer;background:transparent;color:inherit;text-align:left;font:inherit;transition:background .15s,border-color .15s;min-width:0}',
+  '.cmp-room:hover{border-color:var(--c-accent)}',
+  '.cmp-room .rn{font-size:13.5px;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+  '.cmp-room .ra{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--c-kick)}',
+  '.cmp-room.cur{background:var(--c-hl);border-color:var(--c-accent)}',
+  '.cmp-in{display:flex;flex-direction:column;gap:8px;min-width:0}',
+  '.cmp-in .big{font-size:34px;font-weight:300;letter-spacing:.02em;line-height:1.2;color:var(--c-text)}',
+  '.cmp-stats{display:flex;gap:26px;margin-top:8px;padding-top:10px;border-top:1px solid var(--c-line)}',
+  '.cmp-stat{display:flex;flex-direction:column;gap:2px}',
+  '.cmp-stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--c-kick)}',
+  '.cmp-stat .v{font-size:15px;color:var(--c-text)}',
+  '.cmp-num-big{font-size:20px;font-weight:300;letter-spacing:.02em;color:var(--c-text);line-height:1.2}',
+  '.cmp-cstats{display:flex;gap:28px;padding-top:4px}',
+  '.cmp-foot{display:flex;justify-content:space-between;gap:16px;padding:9px 18px;border-top:1px solid var(--c-line);font-size:11px;color:var(--c-kick);letter-spacing:.04em}',
+  '.cmp-empty{font-size:11.5px;color:var(--c-kick);line-height:1.5}',
 ].join('\n')
 
     let styleInjected = false
@@ -219,161 +328,12 @@ window.__ModuleLoader__.load({
       return h('div', { className: 'cmp-row' }, props.children)
     }
     function Card(props) {
-      return h('div', { className: 'cmp-card' }, props.title ? h('h4', null, props.title) : null, props.children)
+      return h('div', { className: 'cmp-card' }, props.title ? h('div', { className: 'cmp-card-title' }, props.title) : null, props.children)
     }
     function Badge(props) {
       return h('span', { className: 'cmp-badge ' + (props.ok ? 'ok' : 'no') }, props.ok ? '已安装' : '未安装')
     }
 
-    // ---- 家分支：她在哪个房间，点一下就过去（数据来自 dsh-anima 的 /anima/api/runtime） ----
-function HomeBranch() {
-  const [data, setData] = useState(null);
-  const [err, setErr] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [hoverId, setHoverId] = useState(null);
-
-  const ACT = { living: "窝着", dining: "吃饭", balcony: "晒太阳", study: "看书", guest: "躺着", kitchen: "做饭", entry: "换鞋" };
-  const NAME = { living: "客厅", dining: "餐厅", balcony: "阳台", study: "书房", guest: "次卧", kitchen: "厨房·餐室", entry: "玄关" };
-  const ORDER = ["living", "dining", "balcony", "study", "guest", "kitchen", "entry"];
-
-  useEffect(() => {
-    let timer;
-    const load = async () => {
-      try {
-        setErr(null);
-        setData(await apiGet(ANIMA + "/runtime"));
-      } catch (e) {
-        setErr(String(e));
-      }
-    };
-    load();
-    timer = setInterval(load, 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const post = useCallback(async (payload) => {
-    setBusy(true);
-    setErr(null);
-    try {
-      const d = await apiPost(ANIMA + "/runtime/event", payload);
-      setData(prev => ({ ...prev, runtime: d.runtime, summary: d.summary }));
-    } catch (e) {
-      setErr(String(e));
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
-  if (!data) {
-    return h(Card, { title: "她在家的位置" }, h("div", { style: { fontSize: "12px", color: "#999" } }, "加载中..."));
-  }
-
-  const rooms = data.rooms || [];
-  const roomById = {};
-  rooms.forEach(r => { roomById[r.id] = r; });
-
-  const runtime = data.runtime || {};
-  const presence = runtime.presence || {};
-  const mood = runtime.mood || {};
-  const quiet = runtime.quiet || {};
-  const currentRoom = presence.room;
-  const moving = presence.moving;
-
-  const cellStyle = (id) => {
-    const isCurrent = id === currentRoom;
-    const isTarget = moving && moving.to === id;
-    const isHover = hoverId === id;
-    let border = "1px var(--dsw-alias-border-l1)";
-    let bg = "var(--dsw-alias-bg-layer-1)";
-    if (isCurrent) {
-      border = "2px #e0a34f";
-      bg = "rgba(224,163,79,.12)";
-    } else if (isTarget) {
-      border = "1px dashed #e0a34f";
-    }
-    if (isHover && !isCurrent) {
-      border = "1px #e0a34f";
-    }
-    return {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "44px",
-      width: "100%",
-      borderRadius: "8px",
-      border,
-      background: bg,
-      fontSize: "12px",
-      cursor: busy ? "not-allowed" : "pointer",
-      pointerEvents: busy ? "none" : "auto",
-      opacity: busy ? 0.6 : 1,
-      boxSizing: "border-box"
-    };
-  };
-
-  const cells = [];
-  ORDER.forEach(id => {
-    if (!roomById[id]) {
-      cells.push(h("div", { key: id, style: { height: "44px" } }));
-      return;
-    }
-    const isCurrent = id === currentRoom;
-    cells.push(h("div", {
-      key: id,
-      style: cellStyle(id),
-      onMouseEnter: () => setHoverId(id),
-      onMouseLeave: () => setHoverId(null),
-      onClick: async () => {
-        if (busy) return;
-        await post({ type: "move-to", room: id, activity: ACT[id] });
-      }
-    }, NAME[id] + (isCurrent ? " ·" : "")));
-  });
-
-  let locText;
-  if (moving) {
-    locText = "正在去 " + NAME[moving.to] + " 的路上";
-  } else if (currentRoom) {
-    locText = "她在 " + NAME[currentRoom] + (presence.activity ? "，" + presence.activity : "");
-  } else {
-    locText = "位置未知";
-  }
-  const quietMap = { awake: "醒着", drowsy: "半睡", quiet: "静默中" };
-  const info = locText + "  ·  心情 " + (data.moodLabel || mood.label || "") + "  ·  说话门 " + (quietMap[quiet.state] || quiet.state || "");
-
-  const btnBase = {
-    padding: "6px 12px",
-    fontSize: "12px",
-    borderRadius: "6px",
-    border: "1px var(--dsw-alias-border-l1)",
-    background: "var(--dsw-alias-bg-layer-1)",
-    cursor: busy ? "not-allowed" : "pointer"
-  };
-
-  const quick = [
-    { label: "晚安", payload: { type: "goodnight" } },
-    { label: "早安", payload: { type: "goodmorning" } },
-    { label: "现在破例 30 分钟", payload: { type: "override", minutes: 30 } }
-  ].map(b => h("button", {
-    key: b.label,
-    type: "button",
-    disabled: busy,
-    style: btnBase,
-    onClick: async () => {
-      if (busy) return;
-      await post(b.payload);
-    }
-  }, b.label));
-
-  return h(Card, { title: "她在家的位置" },
-    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "12px" } }, cells),
-    h("div", { style: { fontSize: "12px", color: "#666", marginBottom: "8px" } }, info),
-    h("div", { style: { display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" } }, quick),
-    err ? h("div", { style: { color: "#d9534f", fontSize: "12px" } }, err) : null
-  );
-}
-
-    // ---- 记忆分支：原生内嵌裁决 ----
     function MemoryBranch(props) {
       const [pending, setPending] = useState({ total: 0, entries: [] })
       const [approved, setApproved] = useState(0)
@@ -741,18 +701,18 @@ function HomeBranch() {
         const chip = (id, onRemove) => h('span', { key: 'c' + id, className: 'cmp-chip' },
           id, h('button', { className: 'cmp-chip-x', onClick: onRemove, title: '移除' }, '×'))
         return h('div', { className: 'cmp-card' },
-          h('h4', { style: { margin: '0 0 6px' } }, '主人号 / 朋友号'),
+          h('div', { className: 'cmp-card-title' }, '主人号 / 朋友号'),
           h('div', { className: 'cmp-muted', style: { lineHeight: 1.6 } }, '主人号：会收到定时主动消息。朋友号：正常应答即可，这里只是名录。'),
           h('div', { className: 'cmp-lbl', style: { marginTop: 8 } }, '主人号'),
           h('div', { className: 'cmp-chips' }, owners.length === 0 ? h('span', { className: 'cmp-muted' }, '还没设置') : owners.map((id) => chip(id, () => this.removeOwner(id)))),
           h('div', { className: 'cmp-row', style: { marginTop: 6 } },
-            h('input', { value: this.state.ownerInput, placeholder: '主人号 QQ 号', onChange: (e) => this.setState({ ownerInput: e.target.value }) }),
+            h('input', { className: 'cmp-input', value: this.state.ownerInput, placeholder: '主人号 QQ 号', onChange: (e) => this.setState({ ownerInput: e.target.value }) }),
             h('button', { className: 'cmp-btn', disabled: busy !== '', onClick: () => this.addOwner() }, '加为主人号'),
           ),
           h('div', { className: 'cmp-lbl', style: { marginTop: 10 } }, '朋友号'),
           h('div', { className: 'cmp-chips' }, friends.length === 0 ? h('span', { className: 'cmp-muted' }, '还没设置') : friends.map((id) => chip(id, () => this.removeFriend(id)))),
           h('div', { className: 'cmp-row', style: { marginTop: 6 } },
-            h('input', { value: this.state.friendInput, placeholder: '朋友号 QQ 号', onChange: (e) => this.setState({ friendInput: e.target.value }) }),
+            h('input', { className: 'cmp-input', value: this.state.friendInput, placeholder: '朋友号 QQ 号', onChange: (e) => this.setState({ friendInput: e.target.value }) }),
             h('button', { className: 'cmp-btn', disabled: busy !== '', onClick: () => this.addFriend() }, '加为朋友号'),
           ),
           h('div', { className: 'cmp-lbl', style: { marginTop: 12 } }, '主动互动（发主人号）'),
@@ -986,25 +946,29 @@ function HomeBranch() {
         const { data, duty, cli, pond, provider, model, manual, manualProvider, catalog, busy, toast } = this.state
         const own = (data && data.providers) || []
         const groups = (catalog && catalog.groups) || []
-        const providers = own.length > 0
-          ? own
-          : groups.map((group) => ({
-              id: String(group.provider || ''),
-              name: String(group.name || group.provider || ''),
-              models: (group.models || []).map((item) => ({ id: String(item.id || ''), name: String(item.name || item.id || '') })),
-              source: 'catalog',
-              usable: null,
-            })).filter((item) => item.id)
+        const fromCatalog = groups.map((group) => ({
+          id: String(group.id || group.provider || ''),
+          name: String(group.name || group.id || group.provider || ''),
+          models: (group.models || []).map((item) => ({ id: String(item.id || ''), name: String(item.name || item.id || '') })),
+          source: 'catalog',
+          usable: null,
+        })).filter((item) => item.id)
+        // 插件自己报的线路优先，DSH 模型目录兜底补齐：只要这台机器上有，就不用你手打名字
+        const mergedProviders = own.slice()
+        fromCatalog.forEach((item) => {
+          if (!mergedProviders.some((hit) => hit.id === item.id)) mergedProviders.push(item)
+        })
+        const providers = mergedProviders.filter((item) => item.id)
         const hit = providers.filter((item) => item.id === provider)[0]
         const models = (hit && hit.models) || []
         const usingCatalog = own.length === 0 && providers.length > 0
         const chosen = provider || manualProvider.trim()
 
         return h('div', { className: 'cmp-card', key: 'biliduty' },
-          h('h4', null, '值班模型（B站自动跑那一轮用哪条线路）'),
+          h('div', { className: 'cmp-card-title' }, '值班模型（B站自动跑那一轮用哪条线路）'),
           !data
             ? h('div', { className: 'cmp-muted' }, '读取中…')
-            : h('div', { className: 'cmp-live' },
+            : h('div', { className: 'cmp-stack' },
                 h('div', { className: 'cmp-text' }, '当前：' + ((data.current && data.current.provider)
                   ? (data.current.provider + (data.current.model ? ' / ' + data.current.model : '（未选模型）'))
                   : '跟随 ' + String(data.profile || 'headless') + ' profile 自己的默认模型')),
@@ -1036,14 +1000,20 @@ function HomeBranch() {
                   providers.map((item) => h('option', { key: item.id, value: item.id },
                     item.id + (item.usable === false ? '（值班 profile 没有）' : '') + (item.source === 'profile' ? ' · 仅在值班 profile' : ''))),
                 )
-              : h('input', { className: 'cmp-input', placeholder: '手填线路 id（如 deepseek-web）', value: manualProvider, onChange: (event) => this.setState({ manualProvider: event.target.value }) }),
+              : h('span', null,
+                  h('input', { className: 'cmp-input', list: 'bili-provider-list', placeholder: '从下拉里挑，或输入关键字过滤', value: manualProvider, onChange: (event) => this.setState({ manualProvider: event.target.value }) }),
+                  h('datalist', { id: 'bili-provider-list' }, fromCatalog.map((item) => h('option', { key: 'pl-' + item.id, value: item.id }))),
+                ),
             h('label', null, '模型'),
             models.length > 0
               ? h('select', { className: 'cmp-input', value: model, onChange: (event) => this.setState({ model: event.target.value }) },
                   h('option', { value: '' }, '（空＝不写模型，跟随默认）'),
                   models.map((item) => h('option', { key: item.id, value: item.id }, item.name && item.name !== item.id ? item.name + '（' + item.id + '）' : item.id)),
                 )
-              : h('input', { className: 'cmp-input', placeholder: hit && hit.source === 'profile' ? '这条线路只在值班 profile 里，手填模型 id' : '先选线路', value: manual, onChange: (event) => this.setState({ manual: event.target.value }) }),
+              : h('span', null,
+                  h('input', { className: 'cmp-input', list: 'bili-model-list', placeholder: hit && hit.source === 'profile' ? '这条线路只在值班 profile 里，可手填或从已知模型里挑' : '先选线路', value: manual, onChange: (event) => this.setState({ manual: event.target.value }) }),
+                  h('datalist', { id: 'bili-model-list' }, (models.length ? models : fromCatalog.reduce((acc, group) => acc.concat(group.models), [])).map((item) => h('option', { key: 'ml-' + item.id, value: item.id }))),
+                ),
           ),
           h(Row, null,
             h('button', { className: 'cmp-btn primary', disabled: busy, onClick: () => this.save(chosen, model || manual) }, busy ? '保存中…' : '保存'),
@@ -1110,7 +1080,7 @@ function HomeBranch() {
               ? h('div', { className: 'cmp-muted' }, '读取中…')
               : live.error
                 ? h('div', { className: 'cmp-muted' }, '读取失败：' + live.error + '（该子插件可能未启用）')
-                : h('div', { className: 'cmp-live' }, live.lines.map((line, index) => h('div', { key: String(index), className: 'cmp-muted' }, line))),
+                : h('div', { className: 'cmp-stack' }, live.lines.map((line, index) => h('div', { key: String(index), className: 'cmp-muted' }, line))),
             h('div', { className: 'cmp-row', style: { marginTop: 8 } },
               h('button', { className: 'cmp-btn', onClick: () => setTick(tick + 1) }, '刷新'),
             ),
@@ -1146,204 +1116,135 @@ function HomeBranch() {
       ])
     }
 
-    // ---- 模型分支：选默认模型（provider / model / 推理强度）----
-    // ---- 免费链路（dsh-our-free-model 的 combo 命名降级链）----
-    // 链本身由插件自己的设置 API 维护（/api/our-free-model/combos），这里只做「勾选顺序 + 一键设为默认」。
-    const FREE_CHAINS = '/api/our-free-model/combos'
-
-    async function readFreeChains() {
-      const res = await fetch(FREE_CHAINS, { headers: { Accept: 'application/json' } })
-      const body = await res.json().catch(() => null)
-      if (!res.ok || !body) throw new Error('HTTP ' + res.status)
-      return body
-    }
-
-    /** 目录里哪个 provider 挂着 combo:* 虚拟模型（免费模型插件的车道） */
-    function comboProvider(groups, name) {
-      const id = 'combo:' + name
-      for (const group of groups || []) {
-        for (const item of group.models || []) {
-          if (item.id === id) return group.id
-        }
-      }
-      return ''
-    }
-
-    function FreeChainCard(props) {
-      const [catalog, setCatalog] = useState(null)
-      const [chains, setChains] = useState([])
-      const [models, setModels] = useState([])
-      const [name, setName] = useState('free')
-      const [strategy, setStrategy] = useState('fallback')
-      const [picked, setPicked] = useState([])
+    // ---- 模型优先顺序 + 重启（失败自动切下一条用）
+    function ChainCard(props) {
+      const { catalog, onChanged } = props
+      const [chain, setChain] = useState([])
+      const [onFail, setOnFail] = useState({ advance: true, restart: true })
+      const [note, setNote] = useState('')
+      const [busy, setBusy] = useState('')
       const [q, setQ] = useState('')
-      const [busy, setBusy] = useState(false)
-      const [toast, setToast] = useState('')
+      const [loaded, setLoaded] = useState(false)
 
       const load = useCallback(async () => {
         try {
-          const body = await readFreeChains()
-          setChains(Array.isArray(body.combos) ? body.combos : [])
-          setModels(Array.isArray(body.models) ? body.models : [])
+          const data = await apiGet(API + '/model-chain')
+          setChain((data && data.chain) || [])
+          setOnFail((data && data.onFail) || { advance: true, restart: true })
         } catch (error) {
-          setToast('读不到免费链路（没装 dsh-our-free-model？）：' + error.message)
+          setNote('读取失败：' + error.message)
+        } finally {
+          setLoaded(true)
         }
-        try {
-          setCatalog(await apiGet(API + '/model'))
-        } catch { /* 目录只是用来提示「哪些不在链范围」，读不到就静默降级 */ }
       }, [])
-      const groups = (catalog && catalog.groups) || []
 
       useEffect(() => { load() }, [load])
 
-      // 可选的只有**这个插件自己车道里的模型**：链的成员按它自己 catalog 的裸 id 对号
-      // （src/core/runtime.js:107 的 state().catalog），DSH 全局别的 provider 的模型放进来会被整条丢弃。
-      const options = models
-        .filter((item) => String(item.id || '').indexOf('combo:') !== 0)
-        .map((item) => ({
-          value: String(item.id),
-          id: String(item.id),
-          label: String(item.name || item.id) + (item.name && item.name !== item.id ? '（' + item.id + '）' : '') + ' · ' + String(item.channel || 'free'),
-          channel: String(item.channel || 'free'),
-        }))
-
-      // 不在链范围的那些：DSH 全局目录里有、但这个插件的 catalog 里没有 ⇒ combos 里放进去会被整条丢掉。
-      const chainIds = options.map((item) => item.id)
-      const outsideModels = []
-      for (const group of groups || []) {
-        for (const item of (group && group.models) || []) {
-          const id = String(item.id || '')
-          if (id && chainIds.indexOf(id) < 0) outsideModels.push(group.id + '/' + id)
-        }
-      }
-
-      // 按车道分组渲染：免费 / Kilo / 账号 / 聚合 各有各的额度来源，分组后一眼能看出成本。
-      const pickerRows = () => {
-        const needle = q.trim().toLowerCase()
-        const visible = options.filter((item) => !needle || (item.label + ' ' + item.channel).toLowerCase().indexOf(needle) >= 0)
-        if (visible.length === 0) {
-          return h('div', { className: 'cmp-muted' }, options.length === 0
-            ? '目录里还没有可用模型（dsh-our-free-model 还没就绪？点上面的「重新读取」试试）'
-            : '没有匹配「' + q.trim() + '」的模型')
-        }
-        const out = []
-        const order = []
-        for (const item of visible) {
-          if (order.indexOf(item.channel) < 0) order.push(item.channel)
-        }
-        for (const channel of order) {
-          const rows = visible.filter((item) => item.channel === channel)
-          out.push(h('div', { key: 'ch:' + channel, className: 'cmp-pickgroup' }, channel + ' · ' + rows.length))
-          for (const item of rows) {
-            const at = picked.map((row) => row.id).indexOf(item.id)
-            out.push(h('label', { key: item.value, className: 'cmp-pick' + (at >= 0 ? ' on' : '') },
-              h('input', { type: 'checkbox', checked: at >= 0, onChange: () => toggle(item) }),
-              h('span', { className: 'cmp-pick-order' }, at >= 0 ? String(at + 1) : '·'),
-              h('span', { className: 'cmp-pick-label' }, item.label),
-            ))
-          }
-        }
-        return out
-      }
-
-      // 多选直接生效：勾上就追加到链尾，取消就摘掉；序号＝链路顺序。
-      const toggle = (item) => {
-        setPicked((old) => (old.some((row) => row.id === item.id)
-          ? old.filter((row) => row.id !== item.id)
-          : old.concat([{ id: item.id, label: item.label }])))
-      }
-
-      const save = async () => {
+      const save = async (nextChain, nextOnFail, quiet) => {
         if (busy) return
-        if (!name.trim() || picked.length === 0) return setToast('先给链路起个名字并至少放一条模型')
-        setBusy(true)
-        setToast('')
+        // 还没把服务端的链读回来就保存，会把链覆盖成空（曾经真的清过一次）
+        if (!loaded) { setNote('还没读回当前的链，稍等一下再点'); return }
+        setBusy('save')
         try {
-          const others = chains.filter((item) => item.name !== name.trim())
-          const next = others.concat([{
-            name: name.trim(),
-            strategy: strategy,
-            // 链路里存的是**裸目录 id**：dsh-our-free-model 的 buildComboCatalog 用 catalog 条目 id 对号，
-            // 写成 provider/model 会被当成找不到的链接而整条丢弃（src/combos.js:107）。
-            models: picked.map((item) => item.id),
-          }])
-          const res = await fetch(FREE_CHAINS, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ combos: next }),
-          })
-          const body = await res.json().catch(() => null)
-          if (!res.ok || !body) throw new Error((body && body.error) || 'HTTP ' + res.status)
-          setToast('链路已保存：combo:' + name.trim() + '（' + picked.length + ' 段，' + strategy + '）')
-          setPicked([])
-          if (props.onSaved) props.onSaved()
-          await load()
+          const data = await apiPost(API + '/model-chain', { chain: nextChain, onFail: nextOnFail })
+          setChain((data && data.chain) || [])
+          setOnFail((data && data.onFail) || nextOnFail)
+          if (!quiet) setNote('已保存，共 ' + String(((data && data.chain) || []).length) + ' 条')
+          if (onChanged) onChanged()
         } catch (error) {
-          setToast('保存链路失败：' + error.message)
+          setNote('保存失败：' + error.message)
         } finally {
-          setBusy(false)
+          setBusy('')
         }
       }
 
-      const useAsDefault = async (chainName) => {
-        const provider = comboProvider((catalog && catalog.groups) || [], chainName)
-        if (!provider) return setToast('目录里还没有 combo:' + chainName + '，稍等插件刷新或重新读取模型目录')
-        setBusy(true)
+      const move = (index, delta) => {
+        const next = chain.slice()
+        const target = index + delta
+        if (target < 0 || target >= next.length) return
+        const held = next[index]
+        next[index] = next[target]
+        next[target] = held
+        save(next, onFail, true)
+      }
+
+      const cur = (catalog && catalog.current) || null
+
+      // 全量候选：DSH 模型目录里的每一条，搜到就点进去，不用先切默认再加
+      const allModels = []
+      ;((catalog && catalog.groups) || []).forEach((group) => {
+        ;((group && group.models) || []).forEach((item) => {
+          allModels.push({ provider: String(group.id || ''), model: String(item.id || ''), name: String(item.name || item.id || '') })
+        })
+      })
+      const kw = q.trim().toLowerCase()
+      const free = allModels.filter((item) => item.provider && item.model && !chain.some((hit) => hit.provider === item.provider && hit.model === item.model))
+      const candidates = (kw ? free.filter((item) => (item.provider + ' ' + item.model + ' ' + item.name).toLowerCase().indexOf(kw) >= 0) : free).slice(0, 40)
+      const addModel = (item) => save(chain.concat([{ provider: item.provider, model: item.model }]), onFail, true)
+
+      const addCurrent = () => {
+        if (!cur || !cur.provider || !cur.model) { setNote('读不到当前模型'); return }
+        if (chain.some((hit) => hit.provider === cur.provider && hit.model === cur.model)) { setNote('它已经在链里了'); return }
+        save(chain.concat([{ provider: cur.provider, model: cur.model }]), onFail)
+      }
+
+      const restartNow = async () => {
+        if (busy) return
+        setBusy('restart')
         try {
-          const data = await apiPost(API + '/model', { provider: provider, model: 'combo:' + chainName })
-          const hot = data && data.hotSwitch
-          setToast('已设为默认 combo:' + chainName
-            + (hot && hot.supported ? '；热切 ' + hot.switched + ' 个活跃会话' : '；热切不可用，只对新会话生效')
-            + chatSwitchText(data))
-          if (props.onChanged) props.onChanged()
+          const data = await apiPost(API + '/restart', { reason: 'manual' })
+          setNote('已安排重启：3 秒后强制结束宿主（pid ' + String((data && data.pid) || '?') + '）再拉起。页面会断开，约 10 秒后自己回来；桌面端可能提示「退出码 1」，那是被强制结束的正常表现，不是出错。')
         } catch (error) {
-          setToast('设置失败：' + error.message)
+          setNote('重启失败：' + error.message)
         } finally {
-          setBusy(false)
+          setBusy('')
         }
       }
 
-      return h(Card, { title: '免费链路（自动切换供应商）' },
-        chains.length === 0
-          ? h('div', { className: 'cmp-muted' }, '还没有链路。选几家渠道的模型排好顺序，建一条 combo：额度撞墙时自动换下一家。')
-          : chains.map((chain) =>
-              h(Row, { key: chain.name },
-                h('span', { className: 'cmp-text' }, 'combo:' + chain.name + '（' + (chain.strategy || 'fallback') + '）· ' + (chain.models || []).join(' → ')),
-                h('button', { className: 'cmp-btn', disabled: busy, onClick: () => useAsDefault(chain.name) }, '设为默认'),
-              )),
-        h('div', { className: 'cmp-grid' },
-          h('label', null, '链路名'),
-          h('input', { className: 'cmp-input', value: name, onChange: (event) => setName(event.target.value) }),
-          h('label', null, '策略'),
-          h('select', { className: 'cmp-input', value: strategy, onChange: (event) => setStrategy(event.target.value) },
-            h('option', { value: 'fallback' }, 'fallback（每轮从链首开始）'),
-            h('option', { value: 'round-robin' }, 'round-robin（轮换起点）'),
-          ),
+      return h(Card, { title: '优先顺序 · 失败自动切下一条' },
+        h('div', { className: 'cmp-muted' }, 'DSH 里能用的模型，按顺序排。当前这条报错时，自动切到下一条（要不要顺手重启见下面）。下面搜到想要的模型，点前面的「＋」就加进来。'),
+        h('div', { className: 'cmp-say' },
+          h('input', {
+            className: 'cmp-input',
+            placeholder: '搜模型（线路或模型名，留空看全部）',
+            value: q,
+            onChange: (event) => setQ(event.target.value),
+          }),
         ),
-        h('div', { className: 'cmp-note' }, picked.length === 0
-          ? '勾选要放进链路的模型，勾选顺序＝降级顺序（下面列的是**全部**可入链的模型）：'
-          : '已选 ' + picked.length + ' 段，序号即降级顺序（chain 从头试到尾）：'),
-        h('input', {
-          className: 'cmp-input',
-          placeholder: '搜模型（名字 / id / 车道）…',
-          value: q,
-          onChange: (event) => setQ(event.target.value),
-        }),
-        h('div', { className: 'cmp-picker' }, pickerRows()),
-        outsideModels.length === 0
-          ? null
-          : h('div', { className: 'cmp-note' }, '另有 ' + outsideModels.length + ' 个模型在 DSH 目录里但**不能**进链（如 ' + outsideModels.slice(0, 3).join('、') + '）：链的成员由 dsh-our-free-model 用它自己的 catalog 对号（src/combos.js），只认它自己车道里的 id。要把某家拉进来，先在「免费模型」设置页打开那个账号车道，或粘贴该平台 key（聚合车道会把它列进目录，这里就会自动出现）。'),
-        picked.length > 0
-          ? h('div', { className: 'cmp-note' }, '链路顺序：' + picked.map((item) => item.id).join(' → '))
-          : null,
-        h(Row, null,
-          h('button', { className: 'cmp-btn', disabled: busy || picked.length === 0, onClick: () => setPicked([]) }, '全不选'),
-          h('button', { className: 'cmp-btn primary', disabled: busy || picked.length === 0, onClick: save }, busy ? '保存中…' : '保存链路'),
+        candidates.length
+          ? h('div', { className: 'cmp-log chatlog' }, candidates.map((item) =>
+              h('div', { key: 'pick-' + item.provider + '/' + item.model, className: 'cmp-chat-row' },
+                h('span', { className: 'cmp-chat-t', style: { cursor: 'pointer', color: 'var(--c-accent)' }, onClick: () => addModel(item) }, '＋'),
+                h('span', { className: 'cmp-chat-w' }, item.provider),
+                h('span', { className: 'cmp-chat-b' }, item.name && item.name !== item.model ? item.name + '（' + item.model + '）' : item.model),
+              ),
+            ))
+          : h('div', { className: 'cmp-muted' }, allModels.length ? '没有匹配的了（或者都已经在链里）。' : '读不到模型目录。'),
+        chain.length
+          ? h('div', { className: 'cmp-log' }, chain.map((item, index) =>
+              h('div', { key: item.provider + '/' + item.model, className: 'cmp-chat-row' },
+                h('span', { className: 'cmp-chat-t' }, '#' + String(index + 1)),
+                h('span', { className: 'cmp-chat-w' }, item.provider),
+                h('span', { className: 'cmp-chat-b' }, item.model),
+                h('span', { className: 'cmp-chat-t' },
+                  h('span', { style: { cursor: 'pointer' }, onClick: () => move(index, -1) }, '↑'),
+                  h('span', { style: { cursor: 'pointer', marginLeft: '6px' }, onClick: () => move(index, 1) }, '↓'),
+                  h('span', { style: { cursor: 'pointer', marginLeft: '6px' }, onClick: () => save(chain.filter((hit, k) => k !== index), onFail) }, '×'),
+                ),
+              ),
+            ))
+          : h('div', { className: 'cmp-muted' }, '链是空的。在上面搜到想要的模型，点前面的「＋」就加进来了。'),
+        h('div', { className: 'cmp-say' },
+          h('button', { type: 'button', className: 'cmp-btn', onClick: addCurrent }, '把当前默认加进来'),
+          h('button', { type: 'button', className: 'cmp-btn', onClick: () => save(chain, { ...onFail, advance: !onFail.advance }, true) }, onFail.advance ? '自动切换：开' : '自动切换：关'),
+          h('button', { type: 'button', className: 'cmp-btn', onClick: () => save(chain, { ...onFail, restart: !onFail.restart }, true) }, onFail.restart ? '切完自动重启：开' : '切完自动重启：关'),
         ),
-        h('div', { className: 'cmp-note' }, '链路由 dsh-our-free-model 维护（与它的「免费模型」设置页同一份数据）；成员只能是它自己车道里的模型。出正文前撞额度墙就换下一段，调用方看不到。'),
-        toast ? h('div', { className: 'cmp-toast' }, toast) : null,
+        h('div', { className: 'cmp-say' }, h('button', { type: 'button', className: 'cmp-btn primary', onClick: restartNow }, busy === 'restart' ? '正在安排…' : '重启 DSH')),
+        note ? h('div', { className: 'cmp-say-m' }, note) : null,
       )
     }
+
+    // ---- 模型分支：选默认模型（provider / model / 推理强度）----
     function ModelBranch(props) {
       const [catalog, setCatalog] = useState(null)
       const [provider, setProvider] = useState('')
@@ -1416,6 +1317,7 @@ function HomeBranch() {
       }
 
       return h('div', { className: 'cmp-body' },
+        h(ChainCard, { catalog: catalog, onChanged: load }),
         h(Card, { title: '当前默认模型' },
           current
             ? h('div', { className: 'cmp-text' }, String(current.provider) + ' / ' + String(current.model) + (current.reasoningEffort ? '（推理强度 ' + String(current.reasoningEffort) + '）' : ''))
@@ -1460,16 +1362,481 @@ function HomeBranch() {
           ? h(Card, { title: '取不到的来源' },
               catalog.failures.map((item) => h('div', { key: item.id, className: 'cmp-muted' }, item.name + '：' + item.message)))
           : null,
-        h(FreeChainCard, { onChanged: load, onSaved: load }),
         (catalog && !catalog.llm)
           ? h('div', { className: 'cmp-note' }, 'llm 注册表不可用，只能看不能选。')
           : null,
       )
     }
 
+    // ---- 总览台：一张页面看住「她在哪、在干什么、服务活着没、记忆还剩多少」 ----
+    const CV_NAME = { living: '客厅', dining: '餐厅', balcony: '阳台', study: '书房', guest: '次卧', kitchen: '厨房', entry: '玄关' }
+    const CV_ACT = { living: '窝着', dining: '吃饭', balcony: '晒太阳', study: '看书', guest: '躺着', kitchen: '做饭', entry: '换鞋' }
+    const CV_PLAN = [
+      { id: 'living', col: '1 / 2', row: '1 / 2' },
+      { id: 'study', col: '1 / 2', row: '2 / 3' },
+      { id: 'dining', col: '2 / 3', row: '1 / 2' },
+      { id: 'guest', col: '2 / 3', row: '2 / 3' },
+      { id: 'balcony', col: '3 / 5', row: '1 / 2' },
+      { id: 'kitchen', col: '3 / 4', row: '2 / 3' },
+      { id: 'entry', col: '4 / 5', row: '2 / 3' },
+    ]
+
+    function cvHm(value) {
+      if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) return -1
+      return Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5))
+    }
+
+    function ConsoleView(props) {
+      const go = (props && typeof props.go === 'function') ? props.go : function () {}
+      const [status, setStatus] = useState(null)
+      const [rt, setRt] = useState(null)
+      const [qq, setQq] = useState(null)
+      const [busy, setBusy] = useState(false)
+      const [sayText, setSayText] = useState('')
+      const [sayNote, setSayNote] = useState('')
+      const [sayBusy, setSayBusy] = useState(false)
+      const [chat, setChat] = useState(null)
+      const [chainCount, setChainCount] = useState(0)
+      const [spk, setSpk] = useState(null)
+      const [spkId, setSpkId] = useState('')
+      const [ears, setEars] = useState(null)
+      const [scope, setScope] = useState('')
+      const [scopeBusy, setScopeBusy] = useState('')
+
+      useEffect(() => {
+        let alive = true
+        const grab = async (fn) => { try { return await fn() } catch (error) { return null } }
+        const load = async () => {
+          const [s, r, q, c, d, e, mc] = await Promise.all([
+            grab(() => apiGet(API + '/status')),
+            grab(() => apiGet(ANIMA + '/runtime')),
+            grab(async () => {
+              const res = await fetch('/dsh-napcat-keeper/state?light=1', { headers: { Accept: 'application/json' } })
+              if (!res.ok) throw new Error('HTTP ' + res.status)
+              return res.json()
+            }),
+            grab(() => apiGet(ANIMA + '/recent-chat?limit=8')),
+            grab(() => apiGet(ANIMA + '/xiaomi/devices')),
+            grab(() => apiGet(ANIMA + '/xiaomi/ears')),
+            grab(() => apiGet(API + '/model-chain')),
+          ])
+          if (!alive) return
+          setStatus(s); setRt(r); setQq(q); setChat(c); setSpk(d); setEars(e)
+          setChainCount(mc && Array.isArray(mc.chain) ? mc.chain.length : 0)
+        }
+        load()
+        const timer = setInterval(load, 30000)
+        return () => { alive = false; clearInterval(timer) }
+      }, [])
+
+      const dark = (function () {
+        try {
+          const m = String(getComputedStyle(document.body).backgroundColor).match(/\d+/g)
+          if (!m) return true
+          return (0.299 * Number(m[0]) + 0.587 * Number(m[1]) + 0.114 * Number(m[2])) < 128
+        } catch (error) { return true }
+      })()
+
+      const runtime = (rt && rt.runtime) || {}
+      const presence = runtime.presence || {}
+      const mood = runtime.mood || {}
+      const quiet = runtime.quiet || {}
+      const routine = Array.isArray(runtime.routine) ? runtime.routine : []
+      const room = presence.room
+      const moving = presence.moving
+
+      const eta = (function () {
+        if (moving && moving.until) {
+          const d = new Date(moving.until)
+          if (!isNaN(d.getTime())) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+        }
+        if (presence.holdUntil) {
+          const d = new Date(presence.holdUntil)
+          if (!isNaN(d.getTime()) && d.getTime() > Date.now()) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+        }
+        const now = new Date()
+        const mins = now.getHours() * 60 + now.getMinutes()
+        for (const item of routine) {
+          if (!item) continue
+          const a = cvHm(item.from)
+          const b = cvHm(item.to)
+          if (a < 0 || b < 0) continue
+          if (a <= b ? (mins >= a && mins < b) : (mins >= a || mins < b)) return item.to
+        }
+        return ''
+      })()
+
+      const goto = async (id) => {
+        if (busy) return
+        setBusy(true)
+        try {
+          const d = await apiPost(ANIMA + '/runtime/event', { type: 'move-to', room: id, activity: CV_ACT[id] || '' })
+          setRt((prev) => (prev ? { ...prev, runtime: d.runtime, summary: d.summary } : prev))
+        } catch (error) {
+          // 静默：下一轮轮询会把真实状态拉回来
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      const sayNow = async () => {
+        const text = sayText.trim()
+        if (!text || sayBusy) return
+        setSayBusy(true)
+        setSayNote('正在合成…')
+        try {
+          const d = await apiPost(ANIMA + '/speak', { text })
+          if (d && d.spoken) setSayNote('说出来了（' + d.engine + '，' + Math.round(d.bytes / 1024) + 'KB）')
+          else setSayNote(d && d.reason ? '说不了话（' + d.reason + '），这句先攒着' : '没说出来')
+          if (d && d.spoken) setSayText('')
+        } catch (error) {
+          setSayNote('失败了：' + (error && error.message ? error.message : String(error)))
+        } finally {
+          setSayBusy(false)
+        }
+      }
+
+      const speakers = (Array.isArray(spk) ? spk : (spk && Array.isArray(spk.devices) ? spk.devices : []))
+      const activeSpk = spkId || (speakers[0] && speakers[0].deviceID) || ''
+
+      const saySpeaker = async () => {
+        const text = sayText.trim()
+        if (!text || sayBusy || !activeSpk) return
+        setSayBusy(true)
+        setSayNote('正在合成，然后让音箱去拉…')
+        try {
+          const d = await apiPost(ANIMA + '/xiaomi/say', { text: text, device: activeSpk })
+          if (d && d.spoken === false) {
+            setSayNote('说话门关着（' + (d.reason || 'quiet') + '），这句先攒着')
+          } else {
+            const nm = (d && d.device && d.device.name) || '小爱'
+            setSayNote('音箱说了：' + nm + (d && d.via === 'tts' ? '（它自己的嗓子）' : '（她的嗓子 ' + ((d && d.engine) || 'edge') + '）'))
+            setSayText('')
+          }
+        } catch (error) {
+          setSayNote('失败了：' + (error && error.message ? error.message : String(error)))
+        } finally {
+          setSayBusy(false)
+        }
+      }
+
+      const toggleEars = async () => {
+        if (sayBusy) return
+        const on = !(ears && ears.on)
+        setSayBusy(true)
+        try {
+          // reply: true = 小爱答不上来时她自己接话（答上来的不插嘴，免得双声）
+          const d = await apiPost(ANIMA + '/xiaomi/ears', { on: on, reply: true })
+          setEars(d || null)
+          setSayNote(on ? '耳朵开了：小爱答不上的，她来接' : '耳朵关了')
+        } catch (error) {
+          setSayNote('耳朵开关失败：' + (error && error.message ? error.message : String(error)))
+        } finally {
+          setSayBusy(false)
+        }
+      }
+
+      useEffect(() => {
+        let alive = true
+        apiGet(ANIMA + '/settings')
+          .then((d) => { if (alive) setScope((d && d.memoryScope) || 'global') })
+          .catch(() => {})
+        return () => { alive = false }
+      }, [])
+
+      const pickScope = async (next) => {
+        if (scopeBusy) return
+        setScopeBusy(next)
+        try {
+          await apiPost(ANIMA + '/settings', { memoryScope: next })
+          setScope(next)
+        } catch (error) {
+          setSayNote('切范围失败：' + (error && error.message ? error.message : String(error)))
+        } finally {
+          setScopeBusy('')
+        }
+      }
+
+      const kicker = (left, right) => h('div', { className: 'cmp-k' }, h('span', null, left), right ? h('span', null, right) : null)
+      const services = status && status.services
+      const counts = (status && status.anima && status.anima.counts) || {}
+      const qqOn = !!(qq && qq.onebot && qq.onebot.clients > 0)
+      const qqProc = !!(qq && qq.procs && qq.procs.boot > 0)
+      const chatRows = (chat && Array.isArray(chat.rows)) ? chat.rows : []
+      const chatHm = (ts) => {
+        try {
+          const d = new Date(ts)
+          if (Number.isNaN(d.getTime())) return ''
+          return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+        } catch (error) { return '' }
+      }
+      const svcRows = [
+        { name: 'QQ 桥接', on: qqOn, to: 'qq' },
+        { name: 'QQ 客户端', on: qqProc, to: 'qq' },
+        { name: '人格 anima', on: !!(services && services.anima && services.anima.installed), to: 'memory' },
+        { name: '耳朵 · 小爱', on: !!(ears && ears.on), to: '' },
+        { name: 'B站', on: !!(services && services.bili && services.bili.installed), to: 'bili' },
+        { name: '表情包', on: !!(services && services.meme && services.meme.installed), to: 'meme' },
+        { name: '侧面栏', on: !!(services && services.sidebar && services.sidebar.installed), to: '' },
+        { name: '对话记录', on: chatRows.length > 0, to: 'chat', note: chatRows.length + ' 条' },
+        { name: '模型链路', on: !!chainCount, to: 'model', note: chainCount ? chainCount + ' 条' : '未排' },
+      ]
+      const quietMap = { awake: '醒着', drowsy: '半睡', quiet: '静默中' }
+      const where = moving ? CV_NAME[moving.to] || moving.to : (room ? CV_NAME[room] || room : '')
+      const doing = moving ? '正在过去' : (presence.activity || CV_ACT[room] || '')
+      const headTitle = moving ? '她去了' + where : (where ? '她在' + where : '她还没定住在哪')
+      const line = moving
+        ? '不在 QQ 的这会儿，她过着自己的时间。' + (eta ? '预计 ' + eta + ' 回来。' : '')
+        : (where ? '她在' + where + (doing ? '，' + doing : '') + '。' + (eta ? '预计 ' + eta + ' 换地方。' : '') : '位置还没排出来。')
+
+      return h('div', { className: 'cmp-console ' + (dark ? 'dark' : 'light') },
+        h('div', { className: 'cmp-aura', key: 'aura' }),
+        h('div', { className: 'cmp-console-scroll' },
+          h('div', { className: 'cmp-crows' }, [
+            h('div', { className: 'cmp-crow solo' }, [
+            h('div', { key: 'live', className: 'cmp-c live' },
+              kicker('HOME / LIVE'),
+              h('div', { className: 'cmp-live' },
+                h('div', { className: 'cmp-plan' }, CV_PLAN.map((cell) => h('button', {
+                  key: cell.id,
+                  className: 'cmp-room' + (cell.id === room ? ' cur' : ''),
+                  style: { gridColumn: cell.col, gridRow: cell.row },
+                  disabled: busy,
+                  onClick: () => goto(cell.id),
+                  title: '让她去' + (CV_NAME[cell.id] || cell.id),
+                },
+                h('span', { className: 'rn' }, CV_NAME[cell.id] || cell.id),
+                h('span', { className: 'ra' }, cell.id === room ? (CV_ACT[cell.id] || '在家') : ''),
+                ))),
+                h('div', { className: 'cmp-in' },
+                  kicker('INDOOR'),
+                  h('div', { className: 'big' }, headTitle),
+                  h('div', { className: 'cmp-h' }, where ? '她此刻在' + where + (doing ? '，' + doing : '') + '。' : '还在等排日程。'),
+                  h('div', { className: 'cmp-stats' },
+                    h('div', { className: 'cmp-stat' }, h('span', { className: 'k' }, '房间'), h('span', { className: 'v' }, where || '—')),
+                    h('div', { className: 'cmp-stat' }, h('span', { className: 'k' }, '状态'), h('span', { className: 'v' }, doing || '—')),
+                    h('div', { className: 'cmp-stat' }, h('span', { className: 'k' }, '回来'), h('span', { className: 'v' }, eta || '—')),
+                  ),
+                ),
+              ),
+            ),
+            ]),
+            h('div', { className: 'cmp-crow' }, [
+            h('div', { key: 'svc', className: 'cmp-c sys' },
+              kicker('SYSTEM', '点一行进对应页'),
+              h('div', null, svcRows.map((item) => {
+                const st = item.on === null ? '' : (item.on ? 'ON-LINE' : 'OFF-LINE')
+                return h(item.to ? 'button' : 'div', {
+                  key: item.name,
+                  type: item.to ? 'button' : undefined,
+                  className: 'cmp-svc' + (item.on ? ' on' : '') + (item.to ? ' jump' : ''),
+                  onClick: item.to ? () => go(item.to) : undefined,
+                },
+                h('span', { className: 'cmp-dot' }),
+                h('span', { className: 'n' }, item.name),
+                h('span', { className: 'st' }, item.note || st),
+                item.to ? h('span', { className: 'go' }, '→') : null,
+                )
+              })),
+            ),
+            h('div', { key: 'ear', className: 'cmp-c ear' },
+              kicker('MY HEAR'),
+              h('div', { className: 'cmp-ct' }, '让她说一句'),
+              h('div', { className: 'cmp-h' }, quietMap[quiet.state] === '静默中' || quietMap[quiet.state] === '半睡'
+                ? '现在是' + quietMap[quiet.state] + '，她会把这句话攒着不出声。'
+                : '声音走 Edge 朗读，晓晓音色，落成 mp3 再放出来。'),
+              h('div', { className: 'cmp-say' },
+                h('input', {
+                  className: 'cmp-input',
+                  placeholder: '她要说的话…',
+                  value: sayText,
+                  disabled: sayBusy,
+                  onChange: (e) => setSayText(e.target.value),
+                  onKeyDown: (e) => { if (e.key === 'Enter') sayNow() },
+                }),
+                h('button', { className: 'cmp-btn primary', disabled: sayBusy, onClick: sayNow }, sayBusy ? '…' : '说'),
+              ),
+              h('div', { className: 'cmp-say-m' }, sayNote || ''),
+              h('div', { className: 'cmp-spk' },
+                speakers.length
+                  ? h('select', {
+                    value: activeSpk,
+                    disabled: sayBusy,
+                    onChange: (e) => setSpkId(e.target.value),
+                  }, speakers.map((d) => h('option', { key: d.deviceID, value: d.deviceID }, (d.name || '小爱') + (d.hardware ? ' · ' + d.hardware : ''))))
+                  : h('span', { className: 'cmp-a' }, '没找到小爱音箱'),
+                h('button', { className: 'cmp-btn', disabled: sayBusy || !activeSpk, onClick: saySpeaker }, sayBusy ? '…' : '对音箱说'),
+              ),
+              h('div', { className: 'cmp-cf' },
+                h('span', null, mood.label ? '此刻心情：' + mood.label : '此刻安静'),
+                h('div', { className: 'cmp-ear' },
+                  h('span', { className: 'cmp-a' }, ears && ears.on ? '耳朵开着，在听小爱' : '耳朵关着'),
+                  h('button', { className: 'cmp-btn', disabled: sayBusy, onClick: toggleEars }, ears && ears.on ? '关耳朵' : '开耳朵'),
+                ),
+              ),
+            ),
+            ]),
+            h('div', { className: 'cmp-crow' }, [
+            h('div', { key: 'memory', className: 'cmp-c mem' },
+              kicker('MEMORY', String(counts.approved || 0) + ' 条已确认'),
+              h('div', { className: 'cmp-ct' }, '温记忆'),
+              h('div', { className: 'cmp-empty' }, '记忆按「她说过的、我判过的」落成卡片，只把索引放进她的提示词。'),
+              h('div', { className: 'cmp-cstats' },
+                h('div', { className: 'cmp-stat' }, h('div', { className: 'cmp-num-big' }, String(counts.approved || 0)), h('span', { className: 'k' }, '已确认')),
+                h('div', { className: 'cmp-stat' }, h('div', { className: 'cmp-num-big' }, String(counts.pending || 0)), h('span', { className: 'k' }, '待裁决')),
+                h('div', { className: 'cmp-stat' }, h('div', { className: 'cmp-num-big' }, String(counts.rejected || 0)), h('span', { className: 'k' }, '已拒绝')),
+              ),
+              h('div', { className: 'cmp-cf' },
+                h('span', null, '生效范围'),
+                h('span', { className: 'cmp-scope' },
+                  h('button', { type: 'button', className: scope === 'global' ? 'on' : '', disabled: !!scopeBusy, onClick: () => pickScope('global') }, '全局'),
+                  h('button', { type: 'button', className: scope === 'onesoul' ? 'on' : '', disabled: !!scopeBusy, onClick: () => pickScope('onesoul') }, '仅 Onesoul'),
+                ),
+              ),
+              h('div', { className: 'cmp-cf' },
+                h('span', null, scope === 'onesoul' ? '桌面对话不进记忆' : '所有对话都进记忆'),
+                h('span', { className: 'cmp-a', style: { cursor: 'pointer' }, onClick: () => go('memory') }, '进记忆页 →'),
+              ),
+            ),
+            h('div', { key: 'chat', className: 'cmp-c chat' },
+              kicker('QQ / OWNER', qqOn ? 'LIVE' : 'OFF-LINE'),
+              h('div', { className: 'cmp-ct' }, '最近的对话'),
+              chatRows.length
+                ? h('div', { className: 'cmp-chat' }, chatRows.slice(0, 7).map((row, i) => h('div', {
+                  key: row.ts + '-' + i,
+                  className: 'cmp-chat-row' + (row.role === 'her' ? ' her' : ''),
+                  title: row.channel + ' · ' + row.text,
+                },
+                h('span', { className: 'cmp-chat-t' }, chatHm(row.ts)),
+                h('span', { className: 'cmp-chat-w' }, row.role === 'her' ? '她' : (row.channel || '你')),
+                h('span', { className: 'cmp-chat-b' }, row.text),
+                )))
+                : h('div', { className: 'cmp-empty' }, '还没有对话。QQ 或小爱聊过之后，这里会出现最近几条。'),
+              h('div', { className: 'cmp-cf' },
+                h('span', null, '最新 ' + Math.min(chatRows.length, 7) + ' 条 / QQ 与小爱'),
+                h('span', { className: 'cmp-a', style: { cursor: 'pointer' }, onClick: () => go('chat') }, '看全部 →'),
+              ),
+            ),
+            ]),
+          ]),
+        ),
+        h('div', { className: 'cmp-foot' },
+          h('span', null, 'dsh-onesoul · 总览 · ' + chatRows.length + ' 条对话 · ' + (ears && ears.on ? '耳朵在听' : '耳朵关着')),
+          h('span', null, '说话门：' + (quietMap[quiet.state] || quiet.state || '醒着') + ' · QQ ' + (qqOn ? '在线' : '离线')),
+        ),
+      )
+    }
+    // ---- 对话：只看她该记住的那些通道（范围由「记忆生效范围」决定）
+    function ChatView(props) {
+      const { go } = props
+      const [rows, setRows] = useState([])
+      const [scope, setScope] = useState('')
+      const [note, setNote] = useState('')
+      const [busy, setBusy] = useState(false)
+      const [text, setText] = useState('')
+      const [hint, setHint] = useState('')
+      const [sending, setSending] = useState(false)
+
+      const load = useCallback(async () => {
+        setBusy(true)
+        try {
+          const data = await apiGet(ANIMA + '/recent-chat?limit=60')
+          setRows((data && data.rows) || [])
+          setScope((data && data.scope) || '')
+          setNote('')
+        } catch (error) {
+          setNote('读取失败：' + error.message)
+        } finally {
+          setBusy(false)
+        }
+      }, [])
+
+      useEffect(() => { load() }, [load])
+
+      useEffect(() => {
+        const el = document.querySelector('.cmp-log')
+        if (el) el.scrollTop = el.scrollHeight
+      }, [rows.length])
+
+      const send = async () => {
+        const payload = String(text || '').trim()
+        if (!payload || sending) return
+        setSending(true)
+        setHint('已发给她，等回话…')
+        try {
+          await apiPost(ANIMA + '/chat', { text: payload })
+          setText('')
+          setTimeout(load, 2500)
+          setTimeout(load, 8000)
+        } catch (error) {
+          setHint('发不出去：' + error.message)
+        } finally {
+          setSending(false)
+        }
+      }
+
+      const hm = (ts) => {
+        const when = new Date(ts)
+        if (isNaN(when.getTime())) return '--:--'
+        return String(when.getHours()).padStart(2, '0') + ':' + String(when.getMinutes()).padStart(2, '0')
+      }
+
+      const human = (row) => (row.role === 'her' ? '她' : (row.channel || '桌面'))
+
+      return h('div', { className: 'cmp-console ' + (pageIsDark() ? 'dark' : 'light') },
+        h('div', { className: 'cmp-aura', key: 'aura' }),
+        h('div', { className: 'cmp-body chatbody' },
+          h('div', { className: 'cmp-k' },
+            h('span', null, 'CONVERSATION'),
+            h('span', null, scope === 'onesoul' ? '仅 Onesoul 通道' : '全局'),
+          ),
+          h('div', { className: 'cmp-ct' }, '对话'),
+          h('div', { className: 'cmp-empty' },
+            scope === 'onesoul'
+              ? '跟着记忆范围走：只显示 QQ / B站 / 小爱 / 控制中心，桌面对话不进记忆也不在这里出现。 '
+              : '全局模式：桌面对话也一并显示。 ',
+            h('span', { className: 'cmp-a', style: { cursor: 'pointer' }, onClick: () => go('home') }, '改记忆范围 →'),
+          ),
+          rows.length
+            ? h('div', { className: 'cmp-log chatlog' }, rows.map((row, index) =>
+                h('div', { key: String(index) + row.ts, className: row.role === 'her' ? 'cmp-chat-row her' : 'cmp-chat-row' },
+                  h('span', { className: 'cmp-chat-t' }, hm(row.ts)),
+                  h('span', { className: 'cmp-chat-w' }, human(row)),
+                  h('span', { className: 'cmp-chat-b' }, row.text),
+                ),
+              ))
+            : h('div', { className: 'cmp-empty' }, '还没有对话。'),
+          note ? h('div', { className: 'cmp-h' }, note) : null,
+          h('div', { className: 'cmp-compose' },
+            h('input', {
+              className: 'cmp-input',
+              value: text,
+              placeholder: '在这儿跟她说一句…（回车发送）',
+              onChange: (event) => setText(event.target.value),
+              onKeyDown: (event) => { if (event.key === 'Enter') send() },
+            }),
+            h('button', { type: 'button', className: 'cmp-btn primary', onClick: send, disabled: sending }, sending ? '…' : '说'),
+          ),
+          hint ? h('div', { className: 'cmp-say-m' }, hint) : null,
+          h('div', { className: 'cmp-cf' },
+            h('span', null, rows.length + ' 条 · 滚动看更早 · ' + (scope === 'onesoul' ? '仅 Onesoul' : '全局')),
+            h('span', { className: 'cmp-a', style: { cursor: 'pointer' }, onClick: load }, busy ? '刷新中…' : '刷新'),
+          ),
+        ),
+      )
+    }
+
+    function pageIsDark() {
+      try {
+        const m = String(getComputedStyle(document.body).backgroundColor).match(/\d+/g)
+        if (!m) return true
+        return (0.299 * Number(m[0]) + 0.587 * Number(m[1]) + 0.114 * Number(m[2])) < 128
+      } catch (error) { return true }
+    }
+
     function ControlCenter(props) {
       ensureStyle()
-      const [branch, setBranch] = useState('memory')
+      const [branch, setBranch] = useState('home')
       const [status, setStatus] = useState(null)
       const [toast, setToast] = useState('')
 
@@ -1486,7 +1853,9 @@ function HomeBranch() {
       const channels = (status && status.branches) || [
         { id: 'memory', title: '记忆' }, { id: 'qq', title: 'QQ' }, { id: 'bili', title: 'B站' }, { id: 'meme', title: '表情包' },
       ]
-      const branches = channels.concat([{ id: 'model', title: '模型' }])
+      const branches = [{ id: 'home', title: '总览' }, { id: 'chat', title: '对话' }]
+        .concat(channels.filter((item) => item.id !== 'home' && item.id !== 'hub' && item.id !== 'chat'))
+        .concat([{ id: 'model', title: '模型' }])
       const current = branches.filter((item) => item.id === branch)[0] || branches[0]
 
       return h('div', { className: 'cmp-panel' },
@@ -1496,13 +1865,18 @@ function HomeBranch() {
           ),
         )),
         toast ? h('div', { className: 'cmp-toast', style: { margin: '8px 12px 0' } }, toast) : null,
-        current.id === 'home'
-          ? h(HomeBranch, null)
-          : current.id === 'model'
-          ? h(ModelBranch, null)
-          : current.id === 'memory'
-            ? h(MemoryBranch, { onCounts: reload })
-            : h(ChannelBranch, { branch: current, services: status && status.services, status }),
+        current.id === 'chat'
+          ? h(ChatView, { go: setBranch })
+          : current.id === 'home'
+          ? h(ConsoleView, { go: setBranch })
+          : h('div', { className: 'cmp-console ' + (pageIsDark() ? 'dark' : 'light') },
+            h('div', { className: 'cmp-aura', key: 'aura' }),
+            current.id === 'model'
+              ? h(ModelBranch, null)
+              : current.id === 'memory'
+                ? h(MemoryBranch, { onCounts: reload })
+                : h(ChannelBranch, { branch: current, services: status && status.services, status }),
+          ),
       )
     }
 
@@ -1549,7 +1923,7 @@ function HomeBranch() {
 
     exports.apply = apply
     exports.inject = inject
-    exports.__test = { ControlCenter, MemoryBranch, ChannelBranch, QqLoginCard, OwnerCard, ModelBranch, FreeChainCard, BiliDutyCardV2, comboProvider, summarizeLive }
+    exports.__test = { ControlCenter, MemoryBranch, ChannelBranch, QqLoginCard, OwnerCard, ModelBranch, ChainCard, BiliDutyCardV2, summarizeLive }
     return module.exports
   },
 })

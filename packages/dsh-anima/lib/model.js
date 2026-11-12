@@ -231,6 +231,9 @@ export function renderPromptSection(state, memory, cwd, options) {
     for (const entry of approved) lines.push(indexLine(entry))
     if (approved.length >= 200) lines.push('（索引已截断到 200 条，更多记忆请用 anima_memory_search。）')
   }
+  // 这句以前只在「记忆为空」时出现，结果一旦有了两条记忆，她就再也看不到「怎么记新事」，
+  // 于是 2026-11-01 之后五天一条没写。改成无论如何都摆在这里。
+  lines.push('要记新事：调 anima_memory_capture（text 写成一条独立、可复核的事实；source 写清来源），候选要等用户裁决才生效。')
   const pending = pendingMemories(memory)
   if (pending.length) {
     lines.push('')

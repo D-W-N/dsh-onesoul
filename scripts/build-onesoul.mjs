@@ -50,6 +50,6 @@ console.log('client:  ' + manifest.exports['./client'])
 if (process.argv.includes('--pack')) {
   const out = join(root, '.local-tarballs')
   mkdirSync(out, { recursive: true })
-  const res = execSync('npm pack --pack-destination "' + out + '" --cache "' + join(tmpdir(), 'dsh-onesoul-npmcache') + '" --silent', { cwd: pkgDir, encoding: 'utf8', shell: true })
+  const res = execSync('npm pack --pack-destination "' + out + '" --cache "' + join(root, '.local-npmcache') + '"', { cwd: pkgDir, encoding: 'utf8', shell: true })
   console.log('packed: ' + out + '\\' + res.trim().split(/\r?\n/).pop())
 }

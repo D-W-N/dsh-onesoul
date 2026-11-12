@@ -1,6 +1,6 @@
 {
   "name": "dsh-anima",
-  "version": "0.1.10",
+  "version": "0.1.33",
   "description": "DeepSeek Harness 灵魂层：单一人格 + 长期记忆候选/裁决 + 系统提示词注入。记忆必须经用户裁决才生效，绝不自动写入。",
   "type": "module",
   "main": "lib/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "dsh-companion-dashboard",
-  "version": "0.1.35",
+  "version": "0.1.57",
   "description": "Companion 控制中心：在 dsh-better-sidebar 里注册一个 Tab，聚合 anima 记忆裁决、默认模型选择、B站/QQ/网页版 DeepSeek provider/表情包状态与快捷入口，全程不离开该 Tab。",
   "type": "module",
   "main": "lib/index.js",
