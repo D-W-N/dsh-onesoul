@@ -1,5 +1,15 @@
 # 发布手册 · dsh-onesoul（单包）
 
+> **2026-11-13：`dsh-onesoul@0.2.6` 已发布**（npm latest=0.2.6，shasum f29e0868…；GitHub main=8f3f722 + tag v0.2.6 已推）。
+> 这次的凭证断档与去处：
+> - 旧 `.verify/npmrc-publish` 与 `.verify/github_key` **丢了**（目录整个没了，从没入库）。
+> - GitHub key 现走 **`C:/Users/1/.ssh/dsh-onesoul_github`**，且 `~/.ssh/config` 已配好 `Host github.com → ssh.github.com:443`，所以直接 `git push` 即可，不再需要 GIT_SSH_COMMAND 前缀（key 文件对 Users 组权限过宽，ssh 会警告；`ssh-keygen -i` 修不了就 `icacls <key> /inheritance:r /grant:r "%USERNAME%:R"`）。
+> - npm token 这次是用户在会话里粘的 ⇒ **已进对话历史，用完去 npmjs 吊销重建**；重建后放回 `.verify/npmrc-publish`（一行 `//registry.npmjs.org/:_authToken=***
+> - npm 官方横幅：**Bypass-2FA granular token 正在收紧（Aug 2026 限新 / Jan 2027 禁直发）**，下次发布前先迁 **Trusted Publishing (OIDM)**，否则又得手工粘 token。
+> - **web profile 没升成**：`profiles/web` 在沙箱外，win_bash 受限令牌写不进（desktop 能写是因为目录上有 DSH 自己授的 `S-1-4-*` ACE）。用户在自己终端跑一条即可：
+>   `node E:/dsh-onesoul/scripts/install-onesoul.mjs --profile web --tgz E:/dsh-onesoul/.local-tarballs/dsh-onesoul-0.2.6.tgz`
+>   （web profile 里残留一个探针文件 `C:/Users/1/.dsh/profiles/web/.probe-host.txt`，顺手删掉。）
+
 > **2026-11-01 夜更新：口径已改为单包发布，本文下半部分的三包顺序仅作历史与回滚参考。**
 >
 > - npm：`dsh-onesoul@0.1.2` 已发布（0.1.0 首版 → 0.1.1 行 id 修正 → 0.1.2 当前 latest） → https://www.npmjs.com/package/dsh-onesoul
