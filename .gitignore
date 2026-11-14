@@ -33,3 +33,8 @@ Thumbs.db
 # pip 装 edge-tts 时的临时目录（跑在仓库根时留下的垃圾）
 pip-*/
 .napcat-tmp/
+
+# 宣传片工程的重产物与编辑器缓存（源码留在库里，音视频不进）
+onesoul-reel/audio/
+onesoul-reel/out/
+onesoul-reel/.showreel-editor/

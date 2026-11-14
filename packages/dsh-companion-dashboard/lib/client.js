@@ -1202,7 +1202,7 @@ window.__ModuleLoader__.load({
       }
 
       return h(Card, { title: '优先顺序 · 失败自动切下一条' },
-        h('div', { className: 'cmp-muted' }, 'DSH 里能用的模型，按顺序排。当前这条报错时，自动切到下一条（要不要顺手重启见下面）。下面搜到想要的模型，点前面的「＋」就加进来。'),
+        h('div', { className: 'cmp-muted' }, 'DSH 里能用的模型，按顺序排。她的通道（控制台 / QQ / B站 / 小爱）报错时，自动切到下一条（要不要顺手重启见下面）。你在自己会话里报错不会动这里。下面搜到想要的模型，点前面的「＋」就加进来。'),
         h('div', { className: 'cmp-say' },
           h('input', {
             className: 'cmp-input',

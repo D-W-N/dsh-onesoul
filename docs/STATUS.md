@@ -1,5 +1,10 @@
 # 阶段总结 · dsh-onesoul（Companion Bundle）
 
+**2026-11-14：失败切换只对自己的通道生效（0.2.7）** —— 用户报「正常会话里模型报错也会把整个 DSH 重启」。
+根因：`advanceOnFailure` 订阅的是**全进程** `session/event`，只看 `reason.kind === 'error'`，不问会话是谁的；`onFail.restart` 打开时任何会话报错都会 `taskkill` 宿主，把主人正在写的活打断。
+修法：加 `ONESOUL_SESSION_PREFIXES = ['anima-ears','anima-console','onebot','bili','xiaomi']` 与 `belongsToOnesoul(sessionId, scope)`，`advanceOnFailure(ctx, session, event, { scope })` 先判归属——不是她的通道就记一行 info 后直接返回，不切链也不重启。前缀口径与 `dsh-anima` 的 `channelOf()` 一致；认不出的会话 id（空、陌生）一律不动，宁可漏一次也不误伤。可用 `onFailScope: 'all'` 退回旧行为（调试用）。模型页说明文案同步改成「她的通道（控制台 / QQ / B站 / 小爱）报错时自动切」。
+验证：`node --check` 全绿 → 打包 → 装 desktop profile（0.2.6 → 0.2.7）→ 抽出 `belongsToOnesoul` 跑 9 组用例全过（`anima-console-abc`/`anima-ears-x1`/`onebot-private-12345`/`bili-duty-1`/`xiaomi-1` 为真，`--E-dsh-onesoul--`/`desktop-abc`/空/`sess_9f8a` 为假，`scope='all'` 为真）。
+
 **2026-11-12：发布前排雷（0.2.6，本地已装桌面 profile，未发 npm）** —— 全量过了一遍 anima + dashboard + 新增的嗓子/耳朵代码，修掉 8 处：
 1. `xiaomi.deviceList` 加 60s 缓存 —— 耳朵每 3 秒轮询都先打一遍小米 device_list，是触发风控的姿势（NapCat 前车之鉴）。
 2. 耳朵自动开启挪进 `mountAnimaRoutes`（只有挂上 webServer 路由的进程开）—— 否则值班 headless 进程升级后与桌面进程双开耳朵：同一条提问喂两遍、双份接话。

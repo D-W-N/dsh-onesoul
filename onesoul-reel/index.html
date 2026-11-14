@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='5' fill='%23dca765'/></svg>">
+<title>dsh-onesoul · one soul, many bodies</title>
+<style>
+  @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-style: normal; font-display: block;
+    src: url(fonts/JetBrainsMono-400-latin.woff2) format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 500; font-style: normal; font-display: block;
+    src: url(fonts/JetBrainsMono-500-latin.woff2) format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 700; font-style: normal; font-display: block;
+    src: url(fonts/JetBrainsMono-700-latin.woff2) format("woff2"); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-style: normal; font-display: block;
+    src: url(fonts/cjk-400.woff2) format("woff2"); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 500; font-style: normal; font-display: block;
+    src: url(fonts/cjk-500.woff2) format("woff2"); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-style: normal; font-display: block;
+    src: url(fonts/cjk-700.woff2) format("woff2"); }
+  html, body { margin: 0; background: #0d0f12; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module" src="./preview.js"></script>
+<script type="module">
+import { DUR, CUES, SHOTS, HOLDS, DROPS, b, shot, typedCount, transitionAt } from './timeline.js';
+import { seg, lerp, ease, glide, snap, spring, springTo, stagger, pulse, stageSize, setupCanvas, loadFonts } from './motion.js';
+import { C, F, mono, cjk, caption, backdrop, bloom, withA, fillRR } from './theme.js';
+import { drawInstall } from './shot-install.js';
+import { drawCenter } from './shot-center.js';
+import { drawMemory } from './shot-memory.js';
+import { drawVoice } from './shot-voice.js';
+import { drawEars } from './shot-ears.js';
+import { drawAlive } from './shot-alive.js';
+import { drawChain } from './shot-chain.js';
+import { drawBodies } from './shot-bodies.js';
+import { drawEnd } from './shot-end.js';
+import { resolveFrame, drawSide } from './transitions.js';
+
+const { W, H } = stageSize();
+const ctx = setupCanvas(document.getElementById('c'), W, H);
+const U = Math.min(W, H) / 1080;
+
+// ── captions: one line per shot, mono, white on grey ─────────────────────────────────
+// The autonomy shot carries four captions, one per narrative beat, so it is resolved by time
+// rather than by shot id. Every other shot has exactly one.
+const ALIVE_CAPTIONS = [
+  [0.0,  '你不在，她也没有下线。'],
+  [5.0,  '她自己判断，自己移动。'],
+  [10.0, 'QQ 等不到你，就用音箱喊你。'],
+  [16.0, '还不够？她会开灯，用光找到你。'],
+];
+
+const CAPTIONS = {
+  install: '一行命令，装齐一个灵魂。',
+  center:  '人格、记忆、QQ、小爱、B站，一个面板看住。',
+  memory:  '她记得，但你说了算。',
+  voice:   '用自己的嗓子开口，音箱替她说出来。',
+  ears:    '小爱答不上来的，她来接。',
+  alive:   '',            // filled from ALIVE_CAPTIONS per beat
+  chain:   '模型掉了，她自己换。',
+  bodies:  '四个通道，同一人格，同一记忆。',
+  end:     'dsh plugin add dsh-onesoul · 开源 MIT',
+};
+
+const DRAW = {
+  install: drawInstall, center: drawCenter, memory: drawMemory, voice: drawVoice,
+  ears: drawEars, alive: drawAlive, chain: drawChain, bodies: drawBodies, end: drawEnd,
+};
+
+// A caption needs to be readable: keep it up while its shot owns the screen, but fade
+// it in after the shot's first beat and out before the cut so it never fights a transition.
+function captionK(s, t) {
+  const t0 = s.t0 + 0.55, t1 = s.t1 - 0.30;
+  return Math.min(ease.outCubic(seg(t, t0, t0 + 0.42)), 1 - ease.inCubic(seg(t, t1 - 0.34, t1)));
+}
+
+window.DUR = DUR;
+window.RENDER_CONTEXT = true;
+
+window.render = (t, frame = {}) => {
+  const copyT = frame.frameTime ?? t;   // caption / hard-cut state uses the exact frame time
+  const spec = resolveFrame(t, copyT);
+  const cur = spec.tr ? spec.b : (SHOTS.find(s => copyT >= s.t0 && copyT < s.t1) || SHOTS[SHOTS.length - 1]);
+  ctx.save();                             // setupCanvas() set the device-pixel transform: keep it
+  backdrop(ctx, W, H, t, { cx: 0.5, cy: 0.48 });
+
+  // One frame may hold two shots while a transition runs. Both are drawn under their own
+  // transform; neither shot module knows a transition exists.
+  const drawShot = (id) => {
+    const f = DRAW[id];
+    if (f) f(ctx, W, H, t, { copyT, U });
+  };
+  if (spec.tr) {
+    const e = spec.k;
+    // outgoing underneath, incoming on top — the arriving shot is what the eye resolves to
+    drawSide(ctx, W, H, t, 'out', spec, () => drawShot(spec.a.id));
+    drawSide(ctx, W, H, t, 'in', spec, () => drawShot(spec.b.id));
+  } else {
+    drawShot(cur.id);
+  }
+
+  // captions: the autonomy shot swaps copy on its own four beats and keeps it up across them;
+  // every other shot is one line for the whole shot. Uses copyT so a subframe blend never
+  // double-prints two captions.
+  if (cur.id === 'alive') {
+    const local = copyT - cur.t0;
+    let idx = 0;
+    for (let i = 0; i < ALIVE_CAPTIONS.length; i++) if (local >= ALIVE_CAPTIONS[i][0] - 0.001) idx = i;
+    const bt0 = cur.t0 + ALIVE_CAPTIONS[idx][0];
+    const bt1 = idx + 1 < ALIVE_CAPTIONS.length ? cur.t0 + ALIVE_CAPTIONS[idx + 1][0] : cur.t1;
+    const k = Math.min(ease.outCubic(seg(copyT, bt0 + 0.30, bt0 + 0.72)),
+                       1 - ease.inCubic(seg(copyT, bt1 - 0.34, bt1 - 0.02)));
+    caption(ctx, W, H, ALIVE_CAPTIONS[idx][1], k);
+  } else {
+    caption(ctx, W, H, CAPTIONS[cur.id], captionK(cur, copyT));
+  }
+  ctx.restore();
+};
+
+await loadFonts([
+  '400 30px "JetBrains Mono"', '500 30px "JetBrains Mono"', '700 30px "JetBrains Mono"',
+  '400 30px "Noto Sans SC"', '500 30px "Noto Sans SC"', '700 30px "Noto Sans SC"',
+  '400 26px "Noto Sans SC"',
+]);
+window.render(0);
+window.READY = true;
+</script>
+</body>
+</html>

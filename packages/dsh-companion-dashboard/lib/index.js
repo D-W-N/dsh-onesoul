@@ -495,6 +495,30 @@ function relaunchHost() {
 // 只在 onFail.advance 打开、且离上次失败超过 3 分钟才动手，避免连环切换把链一条条跑空。
 const FAIL_COOLDOWN_MS = 180000
 
+// 会话归属：这条总线是全进程的，主人自己在桌面会话里写代码时模型报错也算一次 turn/end。
+// 那时候切默认模型 + 重启 DSH = 把主人的活打断（2026-11-14 实测踩到）。
+// 所以只认「她的通道」——前缀与 dsh-anima 的 channelOf() 保持一致；
+// 认不出的会话 id（空、陌生）一律不动，宁可漏一次也不误伤。
+const ONESOUL_SESSION_PREFIXES = ['anima-ears', 'anima-console', 'onebot', 'bili', 'xiaomi']
+
+function sessionIdOf(session) {
+  try {
+    if (!session) return ''
+    const id = session.id || (session.header && session.header.id) || ''
+    return typeof id === 'string' ? id : ''
+  } catch {
+    return ''
+  }
+}
+
+/** scope: 'onesoul'（默认，只干她的通道）| 'all'（全进程都算，调试用） */
+function belongsToOnesoul(sessionId, scope) {
+  if (scope === 'all') return true
+  const id = String(sessionId || '')
+  if (!id) return false
+  return ONESOUL_SESSION_PREFIXES.some(function (prefix) { return id.indexOf(prefix) === 0 })
+}
+
 function nextChainStep(chain, current) {
   if (!chain.chain.length) return null
   const idx = chain.chain.findIndex(function (item) {
@@ -513,9 +537,17 @@ async function switchDefaultSelection(ctx, next) {
   return { hotSwitch: hotSwitch, chatSwitch: chatSwitch }
 }
 
-async function advanceOnFailure(ctx, event) {
+async function advanceOnFailure(ctx, session, event, options) {
   const kind = event && event.data && event.data.reason ? event.data.reason.kind : ''
   if (kind !== 'error') return
+  const scope = options && options.scope ? options.scope : 'onesoul'
+  const sessionId = sessionIdOf(session)
+  if (!belongsToOnesoul(sessionId, scope)) {
+    if (ctx.logger && ctx.logger.info) {
+      ctx.logger.info('dsh-onesoul: 会话 ' + (sessionId || '(无 id)') + ' 报错，但不是她的通道，不切链也不重启')
+    }
+    return
+  }
   const chain = readModelChain()
   if (!chain.onFail.advance) return
   if (chain.lastFailAt) {
@@ -1038,10 +1070,12 @@ export function apply(ctx, pluginConfig) {
   })
 
   // P4b：回合以 error 收尾时沿模型链下移一格（可选自动重启）。总线拿不到就静默退化。
+  // 只对她的通道生效（见 belongsToOnesoul）：桌面会话报错不切链、不重启。
+  const failScope = typeof config.onFailScope === 'string' ? config.onFailScope : 'onesoul'
   ctx.effect(function () {
     if (typeof ctx.on !== 'function') return function () {}
     return ctx.on('session/event', function (session, event) {
-      advanceOnFailure(ctx, event).catch(function (error) {
+      advanceOnFailure(ctx, session, event, { scope: failScope }).catch(function (error) {
         if (ctx.logger && ctx.logger.warn) ctx.logger.warn('dsh-onesoul: 失败切换出错 ' + String((error && error.message) || error))
       })
     })
